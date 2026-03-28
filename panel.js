@@ -1,34 +1,36 @@
-// Store AI key once received from Tampermonkey
-window.AI_KEY = null;
-
-// Listen for messages from the Tampermonkey loader or watcher.js
+// -----------------------------
+// Listen for AI key from parent
+// -----------------------------
 window.addEventListener("message", (event) => {
+    // Only accept messages from your Vercel deployment
+    if (event.origin !== "https://aigrader-blue.vercel.app") return;
     if (!event.data) return;
 
-    // Receive AI key from loader
     if (event.data.type === "AI_GRADER_INIT") {
         window.AI_KEY = event.data.aiKey;
         console.log("AI key received:", window.AI_KEY);
-        return;
-    } 
 
-    // Student changed event from watcher.js
-    if (event.data.type === "STUDENT_CHANGED") {
-        const id = event.data.studentId;
-        console.log("Student changed:", id);
-
-        // TODO: fetch submission + run AI
-        document.getElementById("output").textContent =
-            "Student changed: " + id;
+        const output = document.getElementById("output");
+        if (window.AI_KEY && window.AI_KEY.trim() !== "") {
+            output.textContent = "AI key loaded successfully.";
+        } else {
+            output.textContent = "AI key missing.";
+        }
     }
 });
 
-// --- AI CALL FUNCTION ---
-async function runAI(prompt) {
-    if (!window.AI_KEY) {
-        console.error("AI key not loaded yet.");
-        return "AI key missing.";
+// -----------------------------
+// Test AI button
+// -----------------------------
+document.getElementById("testAI").addEventListener("click", async () => {
+    const output = document.getElementById("output");
+
+    if (!window.AI_KEY || window.AI_KEY.trim() === "") {
+        output.textContent = "AI key missing.";
+        return;
     }
+
+    output.textContent = "Sending request...";
 
     try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -40,24 +42,14 @@ async function runAI(prompt) {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [
-                    { role: "system", content: "You are an expert grader." },
-                    { role: "user", content: prompt }
+                    { role: "user", content: "Say: AI grader test successful." }
                 ]
             })
         });
 
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || "No response.";
+        output.textContent = data.choices?.[0]?.message?.content || "No response.";
     } catch (err) {
-        console.error(err);
-        return "Error calling AI.";
+        output.textContent = "Error: " + err.message;
     }
-}
-
-// --- TEST BUTTON ---
-document.getElementById("testAI").addEventListener("click", async () => {
-    document.getElementById("output").textContent = "Running AI…";
-
-    const result = await runAI("Say hello from inside SpeedGrader.");
-    document.getElementById("output").textContent = result;
 });
