@@ -10,7 +10,7 @@ window.addEventListener("message", (event) => {
         window.AI_KEY = event.data.aiKey;
         console.log("AI key received:", window.AI_KEY);
         return;
-    }
+    } 
 
     // Student changed event from watcher.js
     if (event.data.type === "STUDENT_CHANGED") {
