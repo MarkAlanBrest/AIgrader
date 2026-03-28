@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>AI Grader Panel</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #e5e7eb;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #38bdf8;
+        }
+
+        button {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: #111827;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>AI Grader Panel</h2>
+
+    <button id="testAI">Test AI</button>
+
+    <div id="output">Waiting for input…</div>
+
+    <script src="panel.js"></script>
+</body>
+</html>
