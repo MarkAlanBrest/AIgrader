@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are a grading assistant. Provide a score (0-100) and feedback."
+            content: "You are a grading assistant. Give a score (0-100) and short feedback."
           },
           {
             role: "user",
@@ -33,8 +33,19 @@ export async function POST(req: Request) {
 
     const data = await res.json();
 
+    console.log("OPENAI RESPONSE:", data); // 👈 IMPORTANT
+
+    if (!res.ok) {
+      return Response.json(
+        { error: data?.error?.message || "OpenAI error" },
+        { status: 500 }
+      );
+    }
+
     return Response.json({
-      result: data.choices?.[0]?.message?.content || "No response"
+      result:
+        data?.choices?.[0]?.message?.content ||
+        JSON.stringify(data, null, 2) // 👈 fallback so you SEE something
     });
 
   } catch (err: any) {
