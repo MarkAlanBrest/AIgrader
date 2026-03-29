@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     if (!apiKey) {
       return Response.json({ error: "Missing API key" }, { status: 500 });
     }
-
+ 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
