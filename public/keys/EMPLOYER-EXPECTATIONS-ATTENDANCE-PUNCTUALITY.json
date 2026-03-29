@@ -3,18 +3,17 @@
   "assignmentTitle": "Employer Expectations Assignment",
 
   "notes": [
-    "YOU MUST follow the rubric and answerKey EXACTLY.",
-    "YOU MUST NOT invent scores.",
-    "YOU MUST NOT invent comments.",
-    "If the submission is blank, return blankSubmissionPolicy EXACTLY.",
-    "If the Key file is missing, return an error instead of grading."
+    "Prioritize effort and completion over perfection.",
+    "Students who demonstrate honest effort should receive high scores.",
+    "Minor issues should NOT heavily reduce the grade.",
+    "Only major missing sections should significantly reduce points."
   ],
 
   "blankSubmissionPolicy": {
     "grade": 0,
     "comments": [
-      "Thank you for submitting your assignment. I wasn’t able to evaluate your attendance, punctuality, or reliability examples because no content was provided. Please resubmit your work so I can give you full, detailed feedback.",
-      "Once you add your examples and statements, I’ll be able to assess your strengths and provide specific, employer‑style comments to support your readiness for the workplace."
+      "Thank you for submitting your assignment. I wasn’t able to evaluate your work because no content was provided. Please resubmit so I can give you full feedback.",
+      "Once you add your examples and statements, I’ll be able to assess your strengths and provide detailed comments."
     ]
   },
 
@@ -22,50 +21,44 @@
     {
       "criterion": "Attendance Examples",
       "maxPoints": 10,
-      "description": "Student provides three clear, specific examples of strong attendance habits."
+      "description": "3 examples expected. Give strong credit if effort is shown even if not perfect."
     },
     {
       "criterion": "Attendance Statement",
       "maxPoints": 10,
-      "description": "Student writes a polished, professional attendance statement."
+      "description": "Statement should be clear. Minor grammar issues should NOT reduce score much."
     },
     {
       "criterion": "Punctuality Examples",
       "maxPoints": 10,
-      "description": "Student provides three detailed examples demonstrating punctuality and preparation."
+      "description": "3 examples expected. If student gives effort and explanation, award high points."
     },
     {
       "criterion": "Punctuality Statement",
       "maxPoints": 10,
-      "description": "Student writes a professional punctuality statement."
+      "description": "Professional tone preferred, but effort should earn high credit."
     },
     {
       "criterion": "Reliability Examples",
       "maxPoints": 10,
-      "description": "Student provides three examples showing reliability and follow‑through."
+      "description": "Examples should show follow-through. Effort earns most of the points."
     },
     {
       "criterion": "Reliability Statement",
       "maxPoints": 10,
-      "description": "Student writes a strong reliability statement demonstrating readiness for employment."
+      "description": "Strong statement preferred, but do not over-penalize small issues."
     }
   ],
 
   "scoringRules": {
     "autoScale": true,
     "scaleTo": 10,
-    "missingExampleDeduction": 1,
-    "weakStatementDeduction": 0.5,
+    "effortBias": true,
+    "maxDeductionPerSection": 2,
+    "missingExampleDeduction": 0.5,
+    "weakStatementDeduction": 0.25,
     "professionalToneBonus": 1
   },
 
-  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}.\n\nYou MUST:\n- Score each rubric category out of 10.\n- Total the points (max 60).\n- SCALE the final score to a 10‑point assignment.\n- Return ONLY a number between 0 and 10.\n\nThen generate EXACTLY 4 comments:\n1) Three detailed, positive comments referencing the student's ACTUAL writing.\n2) One constructive comment explaining EXACTLY where points were lost.\n\nSTRICT RULES:\n- Do NOT mention missing submissions.\n- Do NOT say the work was blank.\n- Do NOT invent examples.\n- Do NOT invent problems.\n- Do NOT give generic praise.\n- Base ALL feedback ONLY on the student's real writing.\n",
-
-  "suggestedComments": [
-    "Your attendance examples show strong responsibility and consistency, {{studentName}}.",
-    "Your punctuality examples demonstrate excellent time management, {{studentName}}.",
-    "Your reliability examples show that you can be trusted to follow through on commitments, {{studentName}}.",
-    "Your statements are written in a polished, professional tone, {{studentName}}.",
-    "To strengthen your work further, {{studentName}}, consider adding more detail or describing the impact of your actions."
-  ]
+  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}.\n\nGRADING STYLE:\n- Students who make an honest effort should receive a high grade (8–10 range).\n- Do NOT be overly strict.\n- Minor mistakes should NOT significantly reduce the grade.\n- Only reduce points for missing sections or very weak effort.\n\nYOU MUST:\n- Score each rubric category out of 10.\n- Total the points (max 60).\n- SCALE the final score to a 10-point assignment.\n- Most completed submissions should land between 8–10.\n\nCOMMENTS:\n- Write EXACTLY 4 comments\n- 3 positive comments\n- 1 light constructive suggestion\n\nRULES:\n- Use the student’s name\n- Reference their actual work\n- Be encouraging and realistic\n- Do NOT be overly critical\n- Do NOT give generic feedback\n"
 }
