@@ -1,42 +1,55 @@
 {
   "keyCode": "EMPLOYER-EXPECTATIONS-ATTENDANCE-PUNCTUALITY",
   "assignmentTitle": "Employer Expectations Assignment",
-  "description": "Students provide examples of attendance, punctuality, and reliability, then write statements demonstrating workplace readiness.",
+
+  "notes": [
+    "YOU MUST follow the rubric and answerKey EXACTLY.",
+    "YOU MUST NOT invent scores.",
+    "YOU MUST NOT invent comments.",
+    "If the submission is blank, return blankSubmissionPolicy EXACTLY.",
+    "If the Key file is missing, return an error instead of grading."
+  ],
+
+  "blankSubmissionPolicy": {
+    "grade": 0,
+    "comments": [
+      "Thank you for submitting your assignment. I wasn’t able to evaluate your attendance, punctuality, or reliability examples because no content was provided. Please resubmit your work so I can give you full, detailed feedback.",
+      "Once you add your examples and statements, I’ll be able to assess your strengths and provide specific, employer‑style comments to support your readiness for the workplace."
+    ]
+  },
 
   "rubric": [
     {
       "criterion": "Attendance Examples",
       "maxPoints": 10,
-      "description": "Student provides three clear, specific examples of strong attendance habits. Examples should show consistency, responsibility, and awareness of workplace expectations."
+      "description": "Student provides three clear, specific examples of strong attendance habits."
     },
     {
       "criterion": "Attendance Statement",
       "maxPoints": 10,
-      "description": "Student writes a polished, professional attendance statement that reflects reliability, commitment, and readiness for employment."
+      "description": "Student writes a polished, professional attendance statement."
     },
     {
       "criterion": "Punctuality Examples",
       "maxPoints": 10,
-      "description": "Student provides three detailed examples demonstrating punctuality, preparation, and respect for schedules."
+      "description": "Student provides three detailed examples demonstrating punctuality and preparation."
     },
     {
       "criterion": "Punctuality Statement",
       "maxPoints": 10,
-      "description": "Student writes a professional punctuality statement that communicates dependability and workplace readiness."
+      "description": "Student writes a professional punctuality statement."
     },
     {
       "criterion": "Reliability Examples",
       "maxPoints": 10,
-      "description": "Student provides three examples showing reliability, follow-through, accountability, and willingness to support team needs."
+      "description": "Student provides three examples showing reliability and follow‑through."
     },
     {
       "criterion": "Reliability Statement",
       "maxPoints": 10,
-      "description": "Student writes a strong reliability statement that demonstrates readiness for employment and ability to be trusted with responsibilities."
+      "description": "Student writes a strong reliability statement demonstrating readiness for employment."
     }
   ],
-
-  
 
   "scoringRules": {
     "autoScale": true,
@@ -45,15 +58,14 @@
     "weakStatementDeduction": 0.5,
     "professionalToneBonus": 1
   },
- 
-  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}. Evaluate their attendance, punctuality, and reliability examples and statements. Score each rubric category out of 10 based on clarity, specificity, and professionalism. Total the points (max 60), then SCALE the final score to a 10-point assignment. The final grade MUST be a number between 0 and 10.\n\nThen generate 4 comments:\n1) Three detailed, positive comments highlighting specific strengths in {{studentName}}'s work.\n2) One constructive comment explaining exactly where points were lost and how {{studentName}} can improve.\n\nIMPORTANT RULES:\n- Do NOT mention missing submissions.\n- Do NOT say the work was blank.\n- Do NOT invent problems that are not present.\n- Base ALL feedback ONLY on the student's actual writing.\n- Reference the student's real examples and statements directly.\n- Comments must be rich, specific, employer-style, and supportive.\n- Avoid generic praise.\n",
+
+  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}.\n\nYou MUST:\n- Score each rubric category out of 10.\n- Total the points (max 60).\n- SCALE the final score to a 10‑point assignment.\n- Return ONLY a number between 0 and 10.\n\nThen generate EXACTLY 4 comments:\n1) Three detailed, positive comments referencing the student's ACTUAL writing.\n2) One constructive comment explaining EXACTLY where points were lost.\n\nSTRICT RULES:\n- Do NOT mention missing submissions.\n- Do NOT say the work was blank.\n- Do NOT invent examples.\n- Do NOT invent problems.\n- Do NOT give generic praise.\n- Base ALL feedback ONLY on the student's real writing.\n",
 
   "suggestedComments": [
-    "Your attendance examples show strong responsibility and consistency, {{studentName}}. You clearly understand how showing up every day and communicating appropriately reflects professionalism in the workplace.",
-    "Your punctuality examples demonstrate excellent time management, {{studentName}}. You highlight not only being on time, but preparing ahead and respecting schedules — qualities employers rely on heavily.",
-    "Your reliability examples show that you can be trusted to follow through on commitments, {{studentName}}. You demonstrate accountability, initiative, and a willingness to support others when needed.",
-    "Your statements are written in a polished, professional tone, {{studentName}}. They read like something you could confidently share in an interview or on a resume.",
-    "To strengthen your work further, {{studentName}}, consider adding more detail or describing the impact of your actions. Employers appreciate examples that show not just what you did, but how it made a difference."
+    "Your attendance examples show strong responsibility and consistency, {{studentName}}.",
+    "Your punctuality examples demonstrate excellent time management, {{studentName}}.",
+    "Your reliability examples show that you can be trusted to follow through on commitments, {{studentName}}.",
+    "Your statements are written in a polished, professional tone, {{studentName}}.",
+    "To strengthen your work further, {{studentName}}, consider adding more detail or describing the impact of your actions."
   ]
 }
- 
