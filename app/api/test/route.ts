@@ -9,6 +9,9 @@ export async function POST(req: Request) {
     const { submission, directions, keyCode, student } = await req.json();
     const apiKey = process.env.OPENAI_API_KEY;
 
+    // -----------------------------
+    // API KEY CHECK
+    // -----------------------------
     if (!apiKey) {
       return Response.json({
         grade: 0,
@@ -22,12 +25,17 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // LOAD KEY FILE
+    // LOAD RUBRIC FILE
     // -----------------------------
     let rubric: any = null;
 
     if (keyCode) {
-      const filePath = path.join(process.cwd(), "public", "keys", `${keyCode}.json`);
+      const filePath = path.join(
+        process.cwd(),
+        "public",
+        "keys",
+        `${keyCode}.json`
+      );
 
       if (fs.existsSync(filePath)) {
         rubric = JSON.parse(fs.readFileSync(filePath, "utf-8"));
@@ -47,19 +55,20 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // BLANK SUBMISSION OVERRIDE
+    // BLANK SUBMISSION CHECK
     // -----------------------------
     if (!submission || !submission.trim()) {
       const blank = rubric.blankSubmissionPolicy;
 
       return Response.json({
         grade: blank?.grade ?? 0,
-        comments: blank?.comments ?? [
-          "No submission detected.",
-          "Please resubmit your work.",
-          "Unable to evaluate.",
-          "Points lost due to missing content."
-        ]
+        comments:
+          blank?.comments ?? [
+            "No submission detected.",
+            "Please resubmit your work.",
+            "Unable to evaluate.",
+            "Points lost due to missing content."
+          ]
       });
     }
 
@@ -71,26 +80,11 @@ export async function POST(req: Request) {
     let aiPrompt = rubric.aiPrompt || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
-    const systemPrompt = `
-RETURN ONLY VALID JSON.
-NO MARKDOWN.
-NO TEXT OUTSIDE JSON.
-
-If you cannot follow instructions, return EXACTLY:
-{"grade":0,"comments":["AI failed","Invalid output","Retry","System error"]}
-
-FOLLOW THE RUBRIC EXACTLY.
-FOLLOW blankSubmissionPolicy EXACTLY.
-`;
-
     const fullPrompt = `
-SYSTEM RULES:
-${systemPrompt}
-
 RUBRIC JSON:
 ${JSON.stringify(rubric, null, 2)}
 
-AI INSTRUCTIONS:
+INSTRUCTIONS:
 ${aiPrompt}
 
 STUDENT SUBMISSION:
@@ -98,74 +92,66 @@ ${submission}
 `;
 
     // -----------------------------
-    // OPENAI CALL
+    // OPENAI CALL (FIXED)
     // -----------------------------
-    let raw = "";
+    let parsed;
 
     try {
-      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0,
-          messages: [
-            {
-              role: "system",
-              content: systemPrompt
-            },
-            {
-              role: "user",
-              content: fullPrompt
-            }
-          ]
-        })
-      });
+      const aiRes = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            temperature: 0,
+            response_format: { type: "json_object" },
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Return JSON with: grade (number) and comments (array of 4 strings)."
+              },
+              {
+                role: "user",
+                content: fullPrompt
+              }
+            ]
+          })
+        }
+      );
 
-      const text = await aiRes.text();
+      const aiData = await aiRes.json();
+      const raw = aiData?.choices?.[0]?.message?.content || "{}";
 
-      try {
-        const aiData = JSON.parse(text);
-        raw = aiData?.choices?.[0]?.message?.content || "";
-      } catch {
-        raw = "";
-      }
+      parsed = JSON.parse(raw);
     } catch {
-      raw = "";
-    }
-
-    // -----------------------------
-    // CLEAN + PARSE AI RESPONSE
-    // -----------------------------
-    const cleaned = raw.replace(/```json|```/g, "").trim();
-
-    try {
-      const parsed = JSON.parse(cleaned);
-
-      return Response.json({
-        grade: parsed.grade ?? 0,
-        comments: parsed.comments ?? [
-          "AI returned incomplete data.",
-          "Check submission.",
-          "Retry grading.",
-          "Points lost due to evaluation error."
-        ]
-      });
-
-    } catch {
-      return Response.json({
+      parsed = {
         grade: 0,
         comments: [
-          "AI parsing failed.",
-          "Invalid response format.",
+          "AI failed.",
           "Retry grading.",
-          "Points lost due to evaluation error."
+          "Check submission.",
+          "System fallback."
         ]
-      });
+      };
     }
+
+    // -----------------------------
+    // FINAL RESPONSE
+    // -----------------------------
+    return Response.json({
+      grade: parsed.grade ?? 0,
+      comments: parsed.comments ?? [
+        "AI returned incomplete data.",
+        "Check submission.",
+        "Retry grading.",
+        "Evaluation issue."
+      ]
+    });
 
   } catch (err) {
     return Response.json({
