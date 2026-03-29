@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Panel() {
-  const [output, setOutput] = useState("Waiting for input...");
+  const [output, setOutput] = useState("Waiting for submission...");
+  const [submission, setSubmission] = useState("");
 
-  async function testAI() {
-    setOutput("Sending request...");
+  useEffect(() => {
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "SUBMISSION_TEXT") {
+        setSubmission(event.data.text || "");
+      }
+    });
+  }, []);
+
+  async function grade() {
+    setOutput("Grading...");
 
     try {
       const res = await fetch("/api/test", {
@@ -15,7 +24,7 @@ export default function Panel() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: "Say: AI grader test successful."
+          message: `Grade this submission:\n${submission}`
         })
       });
 
@@ -28,13 +37,13 @@ export default function Panel() {
 
   return (
     <div style={{ padding: 16, background: "#0b1120", color: "#e5e7eb", height: "100vh" }}>
-      <h2 style={{ color: "#38bdf8" }}>AI Grader Panel</h2>
+      <h2 style={{ color: "#38bdf8" }}>AI Grader</h2>
 
-      <button onClick={testAI} style={{ padding: 10, marginBottom: 10 }}>
-        Test AI
+      <button onClick={grade} style={{ padding: 10, marginBottom: 10 }}>
+        Grade Submission
       </button>
 
-      <div style={{ background: "#111827", padding: 10 }}>
+      <div style={{ background: "#111827", padding: 10, height: 300, overflow: "auto" }}>
         {output}
       </div>
     </div>

@@ -18,7 +18,16 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }]
+        messages: [
+          {
+            role: "system",
+            content: "You are a grading assistant. Provide a score (0-100) and feedback."
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ]
       })
     });
 
