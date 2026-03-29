@@ -36,6 +36,17 @@
     }
   ],
 
+  "blankSubmissionPolicy": {
+  "grade": 0,
+  "comments": [
+    "Hi {{studentName}}, it looks like no work was submitted for this assignment.",
+    "This assignment requires examples and statements about attendance, punctuality, and reliability.",
+    "Please complete the assignment and resubmit it as soon as possible. Late submissions may lose points depending on how long the delay is.",
+    "No points were awarded because there was no content to evaluate. Once you submit your work, I can provide full feedback."
+  ]
+}
+
+
   "scoringRules": {
     "autoScale": true,
     "scaleTo": 10,
