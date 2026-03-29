@@ -9,6 +9,7 @@ export default function Panel() {
   useEffect(() => {
     window.addEventListener("message", (event) => {
       if (event.data?.type === "SUBMISSION_TEXT") {
+        console.log("Incoming submission:", event.data.text);
         setSubmission(event.data.text || "");
       }
     });
@@ -29,7 +30,7 @@ export default function Panel() {
       });
 
       const data = await res.json();
-      setOutput(data.result || "No response.");
+      setOutput(data.result || JSON.stringify(data, null, 2));
     } catch (err: any) {
       setOutput("Error: " + err.message);
     }
@@ -42,6 +43,20 @@ export default function Panel() {
       <button onClick={grade} style={{ padding: 10, marginBottom: 10 }}>
         Grade Submission
       </button>
+
+      {/* 🔥 DEBUG: SHOW SUBMISSION */}
+      <div style={{ marginBottom: 10 }}>
+        <strong>Submission Preview:</strong>
+        <pre style={{
+          maxHeight: 150,
+          overflow: "auto",
+          background: "#000",
+          padding: 10,
+          fontSize: 12
+        }}>
+          {submission || "NO TEXT FOUND"}
+        </pre>
+      </div>
 
       <div style={{ background: "#111827", padding: 10, height: 300, overflow: "auto" }}>
         {output}
