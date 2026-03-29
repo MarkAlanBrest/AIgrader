@@ -56,7 +56,7 @@ export default function Panel() {
     submission,
     directions,
     keyCode,
-    student: { name: "Student" }
+  student: { name: (window as any).studentName || "Student" }
   })
 });
 
