@@ -14,9 +14,10 @@ export default function Panel() {
   const [grade, setGrade] = useState<number | null>(null);
   const [comments, setComments] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("");
 
   // -----------------------------
-  // RECEIVE DATA FROM TAMPERMONKEY
+  // AUTO‑LOAD ASSIGNMENT (NO BUTTON)
   // -----------------------------
   useEffect(() => {
     const handler = (event: any) => {
@@ -34,13 +35,6 @@ export default function Panel() {
   }, []);
 
   // -----------------------------
-  // LOAD ASSIGNMENT BUTTON
-  // -----------------------------
-  function loadAssignment() {
-    setAssignmentLoaded(!!submission && !!keyCode);
-  }
-
-  // -----------------------------
   // CALL BACKEND AI
   // -----------------------------
   async function generateAI() {
@@ -51,6 +45,7 @@ export default function Panel() {
     setRubricLoaded(false);
     setGrade(null);
     setComments([]);
+    setCopyStatus("");
 
     try {
       const res = await fetch("/api/test", {
@@ -79,21 +74,21 @@ export default function Panel() {
   }
 
   // -----------------------------
-  // APPLY TO SPEEDGRADER
+  // COPY ONLY SELECTED COMMENTS
   // -----------------------------
-  function applyToSpeedGrader() {
+  async function copyComments() {
     const selected = Array.from(
       document.querySelectorAll("input[data-ai='1']:checked")
-    ).map((cb: any) => cb.value);
+    ).map((cb: any) => cb.value as string);
 
-    window.parent.postMessage(
-      {
-        type: "APPLY_GRADE",
-        grade,
-        generalComments: selected
-      },
-      "*"
-    );
+    const text = selected.join("\n\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus("Copied. Paste into SpeedGrader comments.");
+    } catch {
+      setCopyStatus("Could not copy. Select and copy manually.");
+    }
   }
 
   // -----------------------------
@@ -115,27 +110,11 @@ export default function Panel() {
         color: "#111827",
         height: "100vh",
         fontFamily: "system-ui, sans-serif",
-        overflowY: "auto"
+        overflowY: "auto",
+        position: "relative"
       }}
     >
       <h2 style={{ marginTop: 0, color: "#1e40af" }}>AI Grader</h2>
-
-      {/* LOAD ASSIGNMENT BUTTON */}
-      <button
-        onClick={loadAssignment}
-        style={{
-          width: "100%",
-          padding: "10px 16px",
-          background: "#2563eb",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-          cursor: "pointer",
-          marginBottom: 16
-        }}
-      >
-        Load Assignment
-      </button>
 
       {/* STATUS BLOCK */}
       <div
@@ -193,7 +172,7 @@ export default function Panel() {
         </div>
       )}
 
-      {/* COMMENTS */}
+      {/* COMMENTS + COPY BUTTON (REPLACES SUBMIT BUTTON) */}
       {comments.length > 0 && (
         <div
           style={{
@@ -221,8 +200,9 @@ export default function Panel() {
             </label>
           ))}
 
+          {/* THIS IS EXACTLY WHERE THE SUBMIT BUTTON USED TO BE */}
           <button
-            onClick={applyToSpeedGrader}
+            onClick={copyComments}
             style={{
               marginTop: 16,
               width: "100%",
@@ -234,8 +214,20 @@ export default function Panel() {
               cursor: "pointer"
             }}
           >
-            Submit to SpeedGrader
+            Copy Comments
           </button>
+
+          {copyStatus && (
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 12,
+                color: "#6b7280"
+              }}
+            >
+              {copyStatus}
+            </div>
+          )}
         </div>
       )}
     </div>
