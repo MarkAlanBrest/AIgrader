@@ -111,10 +111,28 @@ ${submission}
         body: JSON.stringify({
           model: "gpt-4o-mini",
           temperature: 0.2,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: fullPrompt }
-          ]
+
+
+      messages: [
+  {
+    role: "system",
+    content: `
+RETURN ONLY VALID JSON.
+NO MARKDOWN.
+NO TEXT OUTSIDE JSON.
+IF YOU CANNOT FOLLOW INSTRUCTIONS, RETURN:
+
+{"grade":0,"comments":["AI failed","Invalid output","Retry","System error"]}
+
+FOLLOW THE RUBRIC EXACTLY.
+`
+  },
+  { role: "user", content: fullPrompt }
+]
+
+
+
+
         })
       });
 
