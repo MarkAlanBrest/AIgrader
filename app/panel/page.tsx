@@ -7,12 +7,15 @@ export default function Panel() {
   const [submission, setSubmission] = useState("");
   const [student, setStudent] = useState<any>(null);
 
-  // ✅ Listen for submission + student info
+  const [gradeValue, setGradeValue] = useState("");
+  const [comments, setComments] = useState<string[]>([]);
+
+  // -----------------------------
+  // RECEIVE FROM TAMPERMONKEY
+  // -----------------------------
   useEffect(() => {
     const handler = (event: any) => {
       if (event.data?.type === "SUBMISSION_TEXT") {
-        console.log("Incoming submission:", event.data.text);
-
         setSubmission(event.data.text || "");
         setStudent(event.data.student || null);
       }
@@ -22,7 +25,9 @@ export default function Panel() {
     return () => window.removeEventListener("message", handler);
   }, []);
 
-  // ✅ Grade function
+  // -----------------------------
+  // GRADE
+  // -----------------------------
   async function grade() {
     if (!submission || submission.trim().length < 10) {
       setOutput("No submission detected.");
@@ -32,39 +37,47 @@ export default function Panel() {
     setOutput("Grading...");
 
     try {
-      const res = await fetch("https://a-igrader-ten.vercel.app/api/test", {
+      const res = await fetch("/api/grade", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: `Grade this submission:\n${submission}`
+          submission
         })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setOutput(data.error || "Request failed");
+        setOutput("Error grading.");
         return;
       }
 
-      const resultText = data.result || JSON.stringify(data, null, 2);
-      setOutput(resultText);
+      setGradeValue(data.grade || "");
+      setComments(data.comments || []);
 
-      // 🔥 extract score + send back to Canvas
-      const match = resultText.match(/(\d{1,3})\/100/);
-      const score = match ? match[1] : "";
-
-      window.parent.postMessage({
-        type: "AI_GRADE_RESULT",
-        score,
-        feedback: resultText
-      }, "*");
+      setOutput(
+        "AI Worked and used the Assignment instructions to offer these suggestions."
+      );
 
     } catch (err: any) {
       setOutput("Error: " + err.message);
     }
+  }
+
+  // -----------------------------
+  // APPLY BACK TO CANVAS
+  // -----------------------------
+  function apply() {
+    const selected = [...document.querySelectorAll("input[type=checkbox]:checked")]
+      .map((cb: any) => cb.value);
+
+    window.parent.postMessage({
+      type: "APPLY_GRADE",
+      grade: gradeValue,
+      generalComments: selected
+    }, "*");
   }
 
   return (
@@ -73,73 +86,83 @@ export default function Panel() {
       background: "#0b1120",
       color: "#e5e7eb",
       height: "100vh",
-      fontFamily: "Arial, sans-serif"
+      fontFamily: "Arial"
     }}>
-      
+
+      {/* STUDENT */}
       <h2 style={{ color: "#38bdf8", marginTop: 0 }}>
-        AI Grader
+        {student?.name || "Student"}
       </h2>
 
-      {/* 🔥 Student Info */}
-      {student && (
-        <div style={{
-          background: "#111827",
-          padding: 10,
-          borderRadius: 6,
-          marginBottom: 12,
-          border: "1px solid #1f2937"
-        }}>
-          <div><strong>Student:</strong> {student.name}</div>
-          <div><strong>Current Grade:</strong> {student.grade || "None"}</div>
-          <div><strong>Current Comment:</strong></div>
-          <div style={{ fontSize: 12, opacity: 0.8 }}>
-            {student.comment || "No comment"}
-          </div>
-        </div>
-      )}
-
-      <button
-        onClick={grade}
-        style={{
-          padding: "10px 16px",
-          marginBottom: 12,
-          background: "#1e40af",
-          color: "#fff",
-          border: "none",
-          borderRadius: 6,
-          cursor: "pointer"
-        }}
-      >
-        Grade Submission
+      {/* BUTTON */}
+      <button onClick={grade} style={{
+        padding: "10px",
+        background: "#1e40af",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6
+      }}>
+        Grade
       </button>
 
-      {/* Submission Preview */}
-      <div style={{ marginBottom: 12 }}>
-        <strong>Submission Preview:</strong>
-        <pre style={{
-          maxHeight: 150,
-          overflow: "auto",
-          background: "#000",
-          padding: 10,
-          fontSize: 12,
-          borderRadius: 6
-        }}>
-          {submission || "NO TEXT FOUND"}
-        </pre>
-      </div>
-
-      {/* Output */}
+      {/* STATUS */}
       <div style={{
         background: "#111827",
-        padding: 12,
-        height: 300,
-        overflow: "auto",
-        borderRadius: 6,
-        border: "1px solid #1f2937"
+        padding: 10,
+        marginTop: 10,
+        borderRadius: 6
       }}>
         {output}
       </div>
 
+      {/* GRADE */}
+      {gradeValue && (
+        <div style={{
+          background: "#111827",
+          padding: 10,
+          marginTop: 10,
+          borderRadius: 6
+        }}>
+          <div>Suggested Grade</div>
+          <input
+            value={gradeValue}
+            onChange={(e) => setGradeValue(e.target.value)}
+            style={{ width: "100%", marginTop: 6 }}
+          />
+        </div>
+      )}
+
+      {/* COMMENTS */}
+      {comments.length > 0 && (
+        <div style={{
+          background: "#111827",
+          padding: 10,
+          marginTop: 10,
+          borderRadius: 6
+        }}>
+          {comments.slice(0, 4).map((c, i) => (
+            <div key={i} style={{ display: "flex", gap: 6 }}>
+              <input type="checkbox" defaultChecked value={c} />
+              <div>{c}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* APPLY */}
+      {gradeValue && (
+        <button onClick={apply} style={{
+          marginTop: 10,
+          padding: "10px",
+          background: "#16a34a",
+          color: "white",
+          border: "none",
+          borderRadius: 6
+        }}>
+          Submit to SpeedGrader
+        </button>
+      )}
+
     </div>
-  ); 
+  );
 }
