@@ -6,82 +6,93 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    // -----------------------------
-    // GET REQUEST BODY
-    // -----------------------------
     const { submission, directions, keyCode, student } = await req.json();
-
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
       return Response.json({
         grade: 0,
         comments: [
-          "Missing API key",
-          "Check environment settings",
-          "Unable to grade",
-          "Points lost due to system error"
+          "Missing API key.",
+          "System configuration error.",
+          "Unable to grade.",
+          "Points lost due to system error."
         ]
       });
     }
 
     // -----------------------------
-    // LOAD JSON KEY FILE
+    // LOAD KEY FILE
     // -----------------------------
-    let rubric: any = {};
+    let rubric: any = null;
 
-    try {
-      if (keyCode) {
-        const filePath = path.join(
-          process.cwd(),
-          "public",
-          "keys",
-          `${keyCode}.json`
-        );
+    if (keyCode) {
+      const filePath = path.join(process.cwd(), "public", "keys", `${keyCode}.json`);
 
-        if (fs.existsSync(filePath)) {
-          const file = fs.readFileSync(filePath, "utf-8");
-          rubric = JSON.parse(file);
-        } else {
-          console.log("JSON file not found:", filePath);
-        }
+      if (fs.existsSync(filePath)) {
+        rubric = JSON.parse(fs.readFileSync(filePath, "utf-8"));
       }
-    } catch (err) {
-      console.log("Error reading JSON:", err);
+    }
+
+    // If no rubric → STOP
+    if (!rubric) {
+      return Response.json({
+        grade: 0,
+        comments: [
+          "Key file missing.",
+          "Assignment is not configured for AI grading.",
+          "Please re-add the KeyCode.",
+          "Points lost due to missing configuration."
+        ]
+      });
     }
 
     // -----------------------------
-    // BUILD AI PROMPT FROM JSON
+    // BLANK SUBMISSION OVERRIDE
+    // -----------------------------
+    if (!submission || !submission.trim()) {
+      const blank = rubric.blankSubmissionPolicy;
+
+      return Response.json({
+        grade: blank?.grade ?? 0,
+        comments: blank?.comments ?? [
+          "No submission detected.",
+          "Please resubmit your work.",
+          "Unable to evaluate.",
+          "Points lost due to missing content."
+        ]
+      });
+    }
+
+    // -----------------------------
+    // BUILD PROMPT
     // -----------------------------
     const studentName = student?.name || "the student";
 
-    // Replace {{studentName}} in aiPrompt
     let aiPrompt = rubric.aiPrompt || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
-    // Final prompt sent to OpenAI
-    const prompt = `
-Return ONLY valid JSON with this structure:
+    const systemPrompt = `
+YOU MUST follow the rubric and scoringRules EXACTLY.
+YOU MUST NOT invent scores.
+YOU MUST NOT invent comments.
+YOU MUST NOT give partial credit for blank or missing work.
+If the submission is blank, you MUST return blankSubmissionPolicy EXACTLY.
+If the Key file is missing, you MUST return an error.
+You MUST return ONLY valid JSON.
+`;
 
-{
-  "grade": number,
-  "comments": [
-    "comment 1",
-    "comment 2",
-    "comment 3",
-    "comment 4"
-  ]
-}
+    const fullPrompt = `
+SYSTEM RULES:
+${systemPrompt}
 
-The JSON key below defines EXACTLY how to grade and what style of comments to produce.
-
-JSON KEY:
+RUBRIC JSON:
 ${JSON.stringify(rubric, null, 2)}
 
-AI INSTRUCTIONS (after name replacement):
+AI INSTRUCTIONS:
 ${aiPrompt}
 
-Submission:
+STUDENT SUBMISSION:
 ${submission}
 `;
 
@@ -100,7 +111,10 @@ ${submission}
         body: JSON.stringify({
           model: "gpt-4o-mini",
           temperature: 0.2,
-          messages: [{ role: "user", content: prompt }]
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: fullPrompt }
+          ]
         })
       });
 
@@ -110,11 +124,9 @@ ${submission}
         const aiData = JSON.parse(text);
         raw = aiData?.choices?.[0]?.message?.content || "";
       } catch {
-        console.log("OpenAI returned non-JSON:", text);
         raw = "";
       }
-    } catch (err) {
-      console.log("OpenAI fetch error:", err);
+    } catch {
       raw = "";
     }
 
@@ -127,46 +139,35 @@ ${submission}
       const parsed = JSON.parse(cleaned);
 
       return Response.json({
-        grade: parsed.grade ?? 7, // AI already outputs 0–10
-        comments: Array.isArray(parsed.comments)
-          ? [
-              parsed.comments[0] || "Good effort.",
-              parsed.comments[1] || "Needs improvement.",
-              parsed.comments[2] || "Check details.",
-              parsed.comments[3] || "Points lost due to missing elements."
-            ]
-          : [
-              "Good effort.",
-              "Needs improvement.",
-              "Check details.",
-              "Points lost due to missing elements."
-            ]
+        grade: parsed.grade ?? 0,
+        comments: parsed.comments ?? [
+          "AI returned incomplete data.",
+          "Check submission.",
+          "Retry grading.",
+          "Points lost due to evaluation error."
+        ]
       });
 
     } catch {
-      console.log("AI RAW (failed parse):", raw);
-
       return Response.json({
-        grade: 7,
+        grade: 0,
         comments: [
           "AI parsing failed.",
-          "Check submission.",
+          "Invalid response format.",
           "Retry grading.",
           "Points lost due to evaluation error."
         ]
       });
     }
 
-  } catch (err: any) {
-    console.log("Server error:", err);
-
+  } catch (err) {
     return Response.json({
       grade: 0,
       comments: [
-        "Server error",
-        "Check API route",
-        "Retry grading",
-        "Points lost due to system failure"
+        "Server error.",
+        "Unexpected failure.",
+        "Retry grading.",
+        "Points lost due to system failure."
       ]
     });
   }
