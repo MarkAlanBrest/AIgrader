@@ -48,21 +48,19 @@ export default function Panel() {
     setCopyStatus("");
 
     try {
+
       const res = await fetch("/api/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    submission,
+    directions,
+    keyCode,
+    student: { name: "Student" }
+  })
+});
 
 
-   body: JSON.stringify({
-  submission,
-  directions,
-  keyCode,
-  student: { name: "Student" }
-})
-
-
-
-      });
 
       const data = await res.json();
 
