@@ -1,8 +1,10 @@
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
+export async function POST() {
   return Response.json({
     hasKey: !!process.env.OPENAI_API_KEY,
-    env: process.env.VERCEL_ENV
+    keyStart: process.env.OPENAI_API_KEY?.substring(0, 10) || null,
+    env: process.env.VERCEL_ENV,
+    url: process.env.VERCEL_URL
   });
 }
