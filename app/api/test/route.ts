@@ -34,7 +34,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // If no rubric → STOP
     if (!rubric) {
       return Response.json({
         grade: 0,
@@ -73,13 +72,15 @@ export async function POST(req: Request) {
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
     const systemPrompt = `
-YOU MUST follow the rubric and scoringRules EXACTLY.
-YOU MUST NOT invent scores.
-YOU MUST NOT invent comments.
-YOU MUST NOT give partial credit for blank or missing work.
-If the submission is blank, you MUST return blankSubmissionPolicy EXACTLY.
-If the Key file is missing, you MUST return an error.
-You MUST return ONLY valid JSON.
+RETURN ONLY VALID JSON.
+NO MARKDOWN.
+NO TEXT OUTSIDE JSON.
+
+If you cannot follow instructions, return EXACTLY:
+{"grade":0,"comments":["AI failed","Invalid output","Retry","System error"]}
+
+FOLLOW THE RUBRIC EXACTLY.
+FOLLOW blankSubmissionPolicy EXACTLY.
 `;
 
     const fullPrompt = `
@@ -110,29 +111,17 @@ ${submission}
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.2,
-
-
-      messages: [
-  {
-    role: "system",
-    content: `
-RETURN ONLY VALID JSON.
-NO MARKDOWN.
-NO TEXT OUTSIDE JSON.
-IF YOU CANNOT FOLLOW INSTRUCTIONS, RETURN:
-
-{"grade":0,"comments":["AI failed","Invalid output","Retry","System error"]}
-
-FOLLOW THE RUBRIC EXACTLY.
-`
-  },
-  { role: "user", content: fullPrompt }
-]
-
-
-
-
+          temperature: 0,
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: fullPrompt
+            }
+          ]
         })
       });
 
