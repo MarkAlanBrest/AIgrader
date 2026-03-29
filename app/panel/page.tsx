@@ -51,11 +51,17 @@ export default function Panel() {
       const res = await fetch("/api/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submission,
-          directions,
-          keyCode
-        })
+
+
+   body: JSON.stringify({
+  submission,
+  directions,
+  keyCode,
+  student: { name: "Student" }
+})
+
+
+
       });
 
       const data = await res.json();
