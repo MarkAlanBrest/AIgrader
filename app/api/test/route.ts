@@ -112,9 +112,26 @@ ${submission}
             messages: [
               {
                 role: "system",
-                content:
-                  "Return JSON with: grade (number) and comments (array of 4 strings)."
-              },
+
+
+               content: `
+You are a professional teacher grading student work.
+
+Return ONLY JSON:
+{
+  "grade": number,
+  "comments": [string, string, string, string]
+}
+
+RULES:
+- Write detailed, human-sounding feedback
+- Use the student's name (${studentName})
+- Reference the student's actual work
+- 3 positive comments + 1 constructive comment
+- Do NOT be generic
+`
+          
+                },
               {
                 role: "user",
                 content: fullPrompt
