@@ -14,7 +14,6 @@ export default function Panel() {
   const [grade, setGrade] = useState<number | null>(null);
   const [comments, setComments] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
 
   // -----------------------------
   // RECEIVE DATA FROM TAMPERMONKEY
@@ -52,7 +51,6 @@ export default function Panel() {
     setRubricLoaded(false);
     setGrade(null);
     setComments([]);
-    setCopyStatus("");
 
     try {
       const res = await fetch("/api/test", {
@@ -81,21 +79,21 @@ export default function Panel() {
   }
 
   // -----------------------------
-  // COPY TO CLIPBOARD
+  // APPLY TO SPEEDGRADER
   // -----------------------------
-  async function copyToClipboard() {
+  function applyToSpeedGrader() {
     const selected = Array.from(
       document.querySelectorAll("input[data-ai='1']:checked")
-    ).map((cb: any) => cb.value as string);
+    ).map((cb: any) => cb.value);
 
-    const text = `Grade: ${grade ?? ""}\n\n${selected.join("\n\n")}`;
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyStatus("Copied. Paste into SpeedGrader grade + comment fields.");
-    } catch {
-      setCopyStatus("Could not copy. Select and copy manually.");
-    }
+    window.parent.postMessage(
+      {
+        type: "APPLY_GRADE",
+        grade,
+        generalComments: selected
+      },
+      "*"
+    );
   }
 
   // -----------------------------
@@ -109,17 +107,6 @@ export default function Panel() {
     );
   }
 
-  // -----------------------------
-  // BUILD PREVIEW TEXT
-  // -----------------------------
-  const selectedPreview = (() => {
-    const selected = Array.from(
-      document.querySelectorAll("input[data-ai='1']:checked")
-    ).map((cb: any) => cb.value as string);
-
-    return `Grade: ${grade ?? ""}\n\n${selected.join("\n\n")}`;
-  })();
-
   return (
     <div
       style={{
@@ -128,12 +115,9 @@ export default function Panel() {
         color: "#111827",
         height: "100vh",
         fontFamily: "system-ui, sans-serif",
-        overflowY: "auto",
-        position: "relative"
+        overflowY: "auto"
       }}
     >
-      {/* Close X handled by Tampermonkey container */}
-
       <h2 style={{ marginTop: 0, color: "#1e40af" }}>AI Grader</h2>
 
       {/* LOAD ASSIGNMENT BUTTON */}
@@ -237,9 +221,8 @@ export default function Panel() {
             </label>
           ))}
 
-          {/* COPY BUTTON */}
           <button
-            onClick={copyToClipboard}
+            onClick={applyToSpeedGrader}
             style={{
               marginTop: 16,
               width: "100%",
@@ -251,46 +234,8 @@ export default function Panel() {
               cursor: "pointer"
             }}
           >
-            Copy Grade & Comments
+            Submit to SpeedGrader
           </button>
-
-          {copyStatus && (
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: "#6b7280"
-              }}
-            >
-              {copyStatus}
-            </div>
-          )}
-
-          {/* PREVIEW AREA FOR MANUAL COPY IF NEEDED */}
-          <div style={{ marginTop: 12 }}>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#6b7280",
-                marginBottom: 4
-              }}
-            >
-              Preview (you can also select and copy manually):
-            </div>
-            <textarea
-              readOnly
-              value={selectedPreview}
-              style={{
-                width: "100%",
-                minHeight: 120,
-                fontSize: 12,
-                padding: 8,
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-                resize: "vertical"
-              }}
-            />
-          </div>
         </div>
       )}
     </div>
