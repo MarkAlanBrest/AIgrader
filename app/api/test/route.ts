@@ -10,12 +10,23 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.OPENAI_API_KEY;
 
+    // -----------------------------
+    // ALWAYS RETURN VALID JSON (even on error)
+    // -----------------------------
     if (!apiKey) {
-      return Response.json({ error: "Missing API key" }, { status: 500 });
+      return Response.json({
+        grade: 0,
+        comments: [
+          "Missing API key",
+          "Check environment settings",
+          "Unable to grade",
+          "Points lost due to system error"
+        ]
+      });
     }
 
     // -----------------------------
-    // LOAD LOCAL JSON (YOUR KEY FILE)
+    // LOAD LOCAL JSON (SAFE)
     // -----------------------------
     let rubric: any = {};
 
@@ -59,8 +70,6 @@ Rules:
 - Always return exactly 4 comments
 - The 4th must explain lost points
 - Grade out of 100
-- Use rubric if available
-- Use instructions
 
 Instructions:
 ${directions || "None"}
@@ -73,24 +82,43 @@ ${submission}
 `;
 
     // -----------------------------
-    // OPENAI CALL
+    // OPENAI CALL (SAFE)
     // -----------------------------
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
+    let raw = "";
 
-    const aiData = await aiRes.json();
-    const raw = aiData?.choices?.[0]?.message?.content || "";
+    try {
+      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.2,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
 
+      const text = await aiRes.text();
+
+      // 🔥 If OpenAI returns HTML or error, we catch it here
+      try {
+        const aiData = JSON.parse(text);
+        raw = aiData?.choices?.[0]?.message?.content || "";
+      } catch {
+        console.log("OpenAI returned non-JSON:", text);
+        raw = "";
+      }
+
+    } catch (err) {
+      console.log("OpenAI fetch error:", err);
+      raw = "";
+    }
+
+    // -----------------------------
+    // CLEAN RESPONSE
+    // -----------------------------
     const cleaned = raw.replace(/```json|```/g, "").trim();
 
     try {
@@ -114,7 +142,7 @@ ${submission}
       });
 
     } catch {
-      console.log("AI RAW:", raw);
+      console.log("AI RAW (failed parse):", raw);
 
       return Response.json({
         grade: 70,
@@ -128,6 +156,16 @@ ${submission}
     }
 
   } catch (err: any) {
-    return Response.json({ error: err.message }, { status: 500 });
+    console.log("Server error:", err);
+
+    return Response.json({
+      grade: 0,
+      comments: [
+        "Server error",
+        "Check API route",
+        "Retry grading",
+        "Points lost due to system failure"
+      ]
+    });
   }
 }
