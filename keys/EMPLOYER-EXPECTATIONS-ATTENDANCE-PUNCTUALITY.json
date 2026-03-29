@@ -41,7 +41,7 @@
     "missingExampleDeduction": 3,
     "weakStatementDeduction": 2,
     "professionalToneBonus": 1
-  },
+  }, 
 
   "aiPrompt": "You are an employment readiness grader. Evaluate the student's attendance, punctuality, and reliability examples and statements. Score each rubric category based on clarity, specificity, and professionalism. Provide a suggested total score out of 60. Then generate 3–5 suggested comments the teacher may choose from. Comments should be supportive, specific, and written in a professional tone. Do not overwrite the teacher's authority; only suggest.",
 
