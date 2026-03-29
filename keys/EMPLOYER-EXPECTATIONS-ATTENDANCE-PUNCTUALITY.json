@@ -1,0 +1,55 @@
+{
+  "keyCode": "EMPLOYER-EXPECTATIONS-ATTENDANCE-PUNCTUALITY",
+  "assignmentTitle": "Employer Expectations Assignment",
+  "description": "Students provide examples of attendance, punctuality, and reliability, then write statements demonstrating workplace readiness.",
+  
+  "rubric": [
+    {
+      "criterion": "Attendance Examples",
+      "maxPoints": 10,
+      "description": "Student provides three clear, specific examples of good attendance."
+    },
+    {
+      "criterion": "Attendance Statement",
+      "maxPoints": 10,
+      "description": "Student writes a clear, professional attendance statement suitable for an interview."
+    },
+    {
+      "criterion": "Punctuality Examples",
+      "maxPoints": 10,
+      "description": "Student provides three specific examples demonstrating punctuality."
+    },
+    {
+      "criterion": "Punctuality Statement",
+      "maxPoints": 10,
+      "description": "Student writes a clear, professional punctuality statement."
+    },
+    {
+      "criterion": "Reliability Examples",
+      "maxPoints": 10,
+      "description": "Student provides three examples demonstrating reliability."
+    },
+    {
+      "criterion": "Reliability Statement",
+      "maxPoints": 10,
+      "description": "Student writes a clear reliability statement showing workplace readiness."
+    }
+  ],
+
+  "scoringRules": {
+    "autoScale": true,
+    "missingExampleDeduction": 3,
+    "weakStatementDeduction": 2,
+    "professionalToneBonus": 1
+  },
+
+  "aiPrompt": "You are an employment readiness grader. Evaluate the student's attendance, punctuality, and reliability examples and statements. Score each rubric category based on clarity, specificity, and professionalism. Provide a suggested total score out of 60. Then generate 3–5 suggested comments the teacher may choose from. Comments should be supportive, specific, and written in a professional tone. Do not overwrite the teacher's authority; only suggest.",
+
+  "suggestedComments": [
+    "Your attendance examples show strong responsibility and commitment.",
+    "Your punctuality statement is clear and demonstrates good time management.",
+    "Your reliability examples show initiative and willingness to support others.",
+    "Consider adding more detail to strengthen your examples.",
+    "Your statements would impress an employer in an interview setting."
+  ]
+}
