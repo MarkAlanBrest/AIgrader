@@ -1,61 +1,74 @@
+import fs from "fs";
+import path from "path";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    // -----------------------------
-    // GET DATA FROM PANEL
-    // -----------------------------
-    const body = await req.json();
-
-    const submission = body.submission || "";
-    const directions = body.directions || "";
-    const keyCode = body.keyCode || "";
+    const { submission, directions, keyCode } = await req.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
-      return Response.json(
-        { error: "Missing API key" },
-        { status: 500 }
-      );
+      return Response.json({ error: "Missing API key" }, { status: 500 });
+    }
+
+    // -----------------------------
+    // LOAD LOCAL JSON (YOUR KEY FILE)
+    // -----------------------------
+    let rubric: any = {};
+
+    try {
+      if (keyCode) {
+        const filePath = path.join(
+          process.cwd(),
+          "public",
+          "keys",
+          `${keyCode}.json`
+        );
+
+        if (fs.existsSync(filePath)) {
+          const file = fs.readFileSync(filePath, "utf-8");
+          rubric = JSON.parse(file);
+        } else {
+          console.log("JSON file not found:", filePath);
+        }
+      }
+    } catch (err) {
+      console.log("Error reading JSON:", err);
     }
 
     // -----------------------------
     // PROMPT
     // -----------------------------
     const prompt = `
-You are grading a student assignment.
+Return ONLY valid JSON.
 
-STRICT RULES:
-- Return ONLY valid JSON
-- No explanation
-- No markdown
-- No extra text
-
-FORMAT:
 {
-  "grade": number,
-  "comments": [
-    "Positive feedback",
-    "Improvement suggestion",
-    "Another suggestion",
-    "Explain what points were lost and why"
-  ]
+ "grade": number,
+ "comments": [
+  "Positive feedback",
+  "Improvement suggestion",
+  "Another suggestion",
+  "Explain what points were lost and why"
+ ]
 }
 
-REQUIREMENTS:
+Rules:
 - Always return exactly 4 comments
-- The 4th comment MUST explain lost points
+- The 4th must explain lost points
 - Grade out of 100
+- Use rubric if available
+- Use instructions
 
-ASSIGNMENT INSTRUCTIONS:
+Instructions:
 ${directions || "None"}
 
-ASSIGNMENT KEYCODE:
-${keyCode || "None"}
+Rubric:
+${JSON.stringify(rubric)}
 
-STUDENT SUBMISSION:
+Submission:
 ${submission}
 `;
 
@@ -65,55 +78,43 @@ ${submission}
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
         temperature: 0.2,
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
+        messages: [{ role: "user", content: prompt }]
       })
     });
 
     const aiData = await aiRes.json();
-
     const raw = aiData?.choices?.[0]?.message?.content || "";
 
-    // -----------------------------
-    // CLEAN RESPONSE
-    // -----------------------------
     const cleaned = raw.replace(/```json|```/g, "").trim();
 
     try {
       const parsed = JSON.parse(cleaned);
 
-      // -----------------------------
-      // FORCE STRUCTURE SAFETY
-      // -----------------------------
       return Response.json({
         grade: parsed.grade ?? 70,
         comments: Array.isArray(parsed.comments)
           ? [
               parsed.comments[0] || "Good effort.",
               parsed.comments[1] || "Needs improvement.",
-              parsed.comments[2] || "Check details more carefully.",
-              parsed.comments[3] || "Points were lost due to missing required elements."
+              parsed.comments[2] || "Check details.",
+              parsed.comments[3] || "Points lost due to missing elements."
             ]
           : [
               "Good effort.",
               "Needs improvement.",
-              "Check details more carefully.",
-              "Points were lost due to missing required elements."
+              "Check details.",
+              "Points lost due to missing elements."
             ]
       });
 
-    } catch (err) {
-      console.error("AI RAW RESPONSE:", raw);
+    } catch {
+      console.log("AI RAW:", raw);
 
       return Response.json({
         grade: 70,
@@ -121,15 +122,12 @@ ${submission}
           "AI parsing failed.",
           "Check submission.",
           "Retry grading.",
-          "Points were lost due to evaluation error."
+          "Points lost due to evaluation error."
         ]
       });
     }
 
   } catch (err: any) {
-    return Response.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return Response.json({ error: err.message }, { status: 500 });
   }
 }
