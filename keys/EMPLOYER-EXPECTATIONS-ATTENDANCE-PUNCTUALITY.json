@@ -2,54 +2,54 @@
   "keyCode": "EMPLOYER-EXPECTATIONS-ATTENDANCE-PUNCTUALITY",
   "assignmentTitle": "Employer Expectations Assignment",
   "description": "Students provide examples of attendance, punctuality, and reliability, then write statements demonstrating workplace readiness.",
-  
+
   "rubric": [
     {
       "criterion": "Attendance Examples",
       "maxPoints": 10,
-      "description": "Student provides three clear, specific examples of good attendance."
+      "description": "Student provides three clear, specific examples of strong attendance habits. Examples should show consistency, responsibility, and awareness of workplace expectations."
     },
     {
       "criterion": "Attendance Statement",
       "maxPoints": 10,
-      "description": "Student writes a clear, professional attendance statement suitable for an interview."
+      "description": "Student writes a polished, professional attendance statement that reflects reliability, commitment, and readiness for employment."
     },
     {
       "criterion": "Punctuality Examples",
       "maxPoints": 10,
-      "description": "Student provides three specific examples demonstrating punctuality."
+      "description": "Student provides three detailed examples demonstrating punctuality, preparation, and respect for schedules."
     },
     {
       "criterion": "Punctuality Statement",
       "maxPoints": 10,
-      "description": "Student writes a clear, professional punctuality statement."
+      "description": "Student writes a professional punctuality statement that communicates dependability and workplace readiness."
     },
     {
       "criterion": "Reliability Examples",
       "maxPoints": 10,
-      "description": "Student provides three examples demonstrating reliability."
+      "description": "Student provides three examples showing reliability, follow-through, accountability, and willingness to support team needs."
     },
     {
       "criterion": "Reliability Statement",
       "maxPoints": 10,
-      "description": "Student writes a clear reliability statement showing workplace readiness."
+      "description": "Student writes a strong reliability statement that demonstrates readiness for employment and ability to be trusted with responsibilities."
     }
   ],
 
   "scoringRules": {
     "autoScale": true,
-    "missingExampleDeduction": 3,
-    "weakStatementDeduction": 2,
+    "missingExampleDeduction": 2,
+    "weakStatementDeduction": 1,
     "professionalToneBonus": 1
-  }, 
+  },
 
-  "aiPrompt": "You are an employment readiness grader. Evaluate the student's attendance, punctuality, and reliability examples and statements. Score each rubric category based on clarity, specificity, and professionalism. Provide a suggested total score out of 60. Then generate 3–5 suggested comments the teacher may choose from. Comments should be supportive, specific, and written in a professional tone. Do not overwrite the teacher's authority; only suggest.",
+  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}. Evaluate their attendance, punctuality, and reliability examples and statements. Score each rubric category based on clarity, specificity, and professionalism. Provide a suggested total score out of 60, then scale it to a 10-point assignment. Then generate 4 comments: three detailed, positive comments highlighting specific strengths in {{studentName}}'s work, and one constructive comment explaining exactly where points were lost and how {{studentName}} can improve. Comments must be rich, specific, and written in a supportive, employer-style tone. Avoid generic praise. Reference the student's examples directly when possible.",
 
   "suggestedComments": [
-    "Your attendance examples show strong responsibility and commitment.",
-    "Your punctuality statement is clear and demonstrates good time management.",
-    "Your reliability examples show initiative and willingness to support others.",
-    "Consider adding more detail to strengthen your examples.",
-    "Your statements would impress an employer in an interview setting."
+    "Your attendance examples show a strong understanding of workplace expectations, {{studentName}}. You clearly demonstrate consistency and responsibility, which are qualities employers value highly.",
+    "Your punctuality examples are well chosen and show excellent time management, {{studentName}}. You highlight not just being on time, but preparing ahead and respecting schedules — this is exactly what employers look for.",
+    "Your reliability examples demonstrate that you can be trusted to follow through on commitments, {{studentName}}. You show initiative, accountability, and a willingness to support others.",
+    "Your statements are written in a professional tone and would make a strong impression in an interview, {{studentName}}.",
+    "To strengthen your work further, {{studentName}}, consider adding more detail or specific situations to show the full impact of your actions. Employers appreciate examples that describe not just what you did, but how it made a difference."
   ]
 }
