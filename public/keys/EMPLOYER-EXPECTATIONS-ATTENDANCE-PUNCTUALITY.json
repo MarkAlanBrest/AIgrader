@@ -36,22 +36,21 @@
     }
   ],
 
-"scoringRules": {
-  "autoScale": true,
-  "scaleTo": 10,
-  "missingExampleDeduction": 1,
-  "weakStatementDeduction": 0.5,
-  "professionalToneBonus": 1
-},
-
-
-  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}. Evaluate their attendance, punctuality, and reliability examples and statements. Score each rubric category based on clarity, specificity, and professionalism. Provide a suggested total score out of 60, then scale it to a 10-point assignment. Then generate 4 comments: three detailed, positive comments highlighting specific strengths in {{studentName}}'s work, and one constructive comment explaining exactly where points were lost and how {{studentName}} can improve. Comments must be rich, specific, and written in a supportive, employer-style tone. Avoid generic praise. Reference the student's examples directly when possible.",
+  "scoringRules": {
+    "autoScale": true,
+    "scaleTo": 10,
+    "missingExampleDeduction": 1,
+    "weakStatementDeduction": 0.5,
+    "professionalToneBonus": 1
+  },
+ 
+  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}. Evaluate their attendance, punctuality, and reliability examples and statements. Score each rubric category out of 10 based on clarity, specificity, and professionalism. Total the points (max 60), then SCALE the final score to a 10-point assignment. The final grade MUST be a number between 0 and 10.\n\nThen generate 4 comments:\n1) Three detailed, positive comments highlighting specific strengths in {{studentName}}'s work.\n2) One constructive comment explaining exactly where points were lost and how {{studentName}} can improve.\n\nIMPORTANT RULES:\n- Do NOT mention missing submissions.\n- Do NOT say the work was blank.\n- Do NOT invent problems that are not present.\n- Base ALL feedback ONLY on the student's actual writing.\n- Reference the student's real examples and statements directly.\n- Comments must be rich, specific, employer-style, and supportive.\n- Avoid generic praise.\n",
 
   "suggestedComments": [
-    "Your attendance examples show a strong understanding of workplace expectations, {{studentName}}. You clearly demonstrate consistency and responsibility, which are qualities employers value highly.",
-    "Your punctuality examples are well chosen and show excellent time management, {{studentName}}. You highlight not just being on time, but preparing ahead and respecting schedules — this is exactly what employers look for.",
-    "Your reliability examples demonstrate that you can be trusted to follow through on commitments, {{studentName}}. You show initiative, accountability, and a willingness to support others.",
-    "Your statements are written in a professional tone and would make a strong impression in an interview, {{studentName}}.",
-    "To strengthen your work further, {{studentName}}, consider adding more detail or specific situations to show the full impact of your actions. Employers appreciate examples that describe not just what you did, but how it made a difference."
+    "Your attendance examples show strong responsibility and consistency, {{studentName}}. You clearly understand how showing up every day and communicating appropriately reflects professionalism in the workplace.",
+    "Your punctuality examples demonstrate excellent time management, {{studentName}}. You highlight not only being on time, but preparing ahead and respecting schedules — qualities employers rely on heavily.",
+    "Your reliability examples show that you can be trusted to follow through on commitments, {{studentName}}. You demonstrate accountability, initiative, and a willingness to support others when needed.",
+    "Your statements are written in a polished, professional tone, {{studentName}}. They read like something you could confidently share in an interview or on a resume.",
+    "To strengthen your work further, {{studentName}}, consider adding more detail or describing the impact of your actions. Employers appreciate examples that show not just what you did, but how it made a difference."
   ]
-} 
+}
