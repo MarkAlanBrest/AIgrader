@@ -5,13 +5,16 @@ import { useEffect, useState } from "react";
 export default function Panel() {
   const [output, setOutput] = useState("Waiting for submission...");
   const [submission, setSubmission] = useState("");
+  const [student, setStudent] = useState<any>(null);
 
-  // ✅ Listen for submission from Tampermonkey
+  // ✅ Listen for submission + student info
   useEffect(() => {
     const handler = (event: any) => {
       if (event.data?.type === "SUBMISSION_TEXT") {
         console.log("Incoming submission:", event.data.text);
+
         setSubmission(event.data.text || "");
+        setStudent(event.data.student || null);
       }
     };
 
@@ -46,7 +49,18 @@ export default function Panel() {
         return;
       }
 
-      setOutput(data.result || JSON.stringify(data, null, 2));
+      const resultText = data.result || JSON.stringify(data, null, 2);
+      setOutput(resultText);
+
+      // 🔥 extract score + send back to Canvas
+      const match = resultText.match(/(\d{1,3})\/100/);
+      const score = match ? match[1] : "";
+
+      window.parent.postMessage({
+        type: "AI_GRADE_RESULT",
+        score,
+        feedback: resultText
+      }, "*");
 
     } catch (err: any) {
       setOutput("Error: " + err.message);
@@ -66,6 +80,24 @@ export default function Panel() {
         AI Grader
       </h2>
 
+      {/* 🔥 Student Info */}
+      {student && (
+        <div style={{
+          background: "#111827",
+          padding: 10,
+          borderRadius: 6,
+          marginBottom: 12,
+          border: "1px solid #1f2937"
+        }}>
+          <div><strong>Student:</strong> {student.name}</div>
+          <div><strong>Current Grade:</strong> {student.grade || "None"}</div>
+          <div><strong>Current Comment:</strong></div>
+          <div style={{ fontSize: 12, opacity: 0.8 }}>
+            {student.comment || "No comment"}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={grade}
         style={{
@@ -81,7 +113,7 @@ export default function Panel() {
         Grade Submission
       </button>
 
-      {/* ✅ DEBUG: Submission preview */}
+      {/* Submission Preview */}
       <div style={{ marginBottom: 12 }}>
         <strong>Submission Preview:</strong>
         <pre style={{
@@ -96,7 +128,7 @@ export default function Panel() {
         </pre>
       </div>
 
-      {/* ✅ Output */}
+      {/* Output */}
       <div style={{
         background: "#111827",
         padding: 12,
