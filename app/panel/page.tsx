@@ -22,6 +22,8 @@ export default function Panel() {
   useEffect(() => {
     const handler = (event: any) => {
       if (event.data?.type === "SUBMISSION_TEXT") {
+        (window as any).studentName = event.data.student?.name || "Student";
+
         setSubmission(event.data.text || "");
         setDirections(event.data.directions || "");
         setKeyCode(event.data.keyCode || "");
