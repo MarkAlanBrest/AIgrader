@@ -80,9 +80,13 @@ export async function POST(req: Request) {
     let aiPrompt = rubric.aiPrompt || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
-    const fullPrompt = `
+const rubricWithName = JSON.stringify(rubric, null, 2).replace(/{{studentName}}/g, studentName);
+
+const fullPrompt = `
 RUBRIC JSON:
-${JSON.stringify(rubric, null, 2)}
+${rubricWithName}
+
+
 
 INSTRUCTIONS:
 ${aiPrompt}
