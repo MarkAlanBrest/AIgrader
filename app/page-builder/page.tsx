@@ -175,73 +175,146 @@ export default function PageBuilder() {
   /* ---------------------------------------------------
      HTML BUILDER — Converts AI JSON → Styled HTML
   --------------------------------------------------- */
-  function buildHTMLFromJSON(data: any, theme: string) {
-    const icon = getIconForTheme(theme);
 
-    const sections = (data.sections || [])
-      .map((s: any) => {
-        if (s.type === "heading") {
-          return `
-            <h2 class="section-title">
-              ${icon}
-              ${s.text}
-            </h2>
-          `;
-        }
 
-        if (s.type === "text") {
-          return `<p>${s.content}</p>`;
-        }
+function buildHTMLFromJSON(data: any, theme: string) {
 
-        if (s.type === "list") {
-          return `
-            <ul class="icon-list">
-              ${s.items.map((i: string) => `<li>${i}</li>`).join("")}
-            </ul>
-          `;
-        }
+  // Pick emoji icon per theme
+  const icon =
+    theme === "Card Layout" ? "⭐" :
+    theme === "Soft Pastel" ? "🌸" :
+    theme === "Dark Mode" ? "💡" :
+    theme === "Hero Banner" ? "✨" :
+    theme === "Minimal Gray" ? "🔹" :
+    "🔵"; // Modern Blue default
 
-        if (s.type === "video") {
-          return `
-            <iframe class="video-frame"
+  const sections = (data.sections || [])
+    .map((s: any) => {
+
+      if (s.type === "heading") {
+        return `
+          <h2 style="
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <span style="font-size: 22px;">${icon}</span>
+            ${s.text}
+          </h2>
+        `;
+      }
+
+      if (s.type === "text") {
+        return `
+          <p style="
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+          ">
+            ${s.content}
+          </p>
+        `;
+      }
+
+      if (s.type === "list") {
+        return `
+          <ul style="
+            padding-left: 22px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+          ">
+            ${s.items.map((i: string) => `<li>${i}</li>`).join("")}
+          </ul>
+        `;
+      }
+
+      if (s.type === "video") {
+        return `
+          <div style="margin: 20px 0;">
+            <iframe
               src="${s.url}"
               allowfullscreen
-            ></iframe>
-          `;
-        }
+              style="width: 100%; height: 315px; border: none; border-radius: 8px;">
+            </iframe>
+          </div>
+        `;
+      }
 
-        if (s.type === "container") {
-          return `
-            <div class="container">
-              ${s.content}
-            </div>
-          `;
-        }
+      if (s.type === "container") {
+        return `
+          <div style="
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+          ">
+            ${s.content}
+          </div>
+        `;
+      }
 
-        if (s.type === "card") {
-          return `
-            <div class="card">
-              ${s.content}
-            </div>
-          `;
-        }
+      if (s.type === "card") {
+        return `
+          <div style="
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 20px 0;
+          ">
+            ${s.content}
+          </div>
+        `;
+      }
 
-        if (s.type === "divider") {
-          return `<hr class="divider" />`;
-        }
- 
-        return "";
-      })
-      .join("");
+      if (s.type === "divider") {
+        return `
+          <hr style="
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 32px 0;
+          " />
+        `;
+      }
+
+      return "";
+    })
+    .join("");
 
   return `
-  <div class="page-root theme-${theme.toLowerCase().replace(/ /g, "-")}">
+    <div style="
+      font-family: Arial, sans-serif;
+      color: #111;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    ">
 
-        <h1 class="hero-title">${data.title || "Generated Page"}</h1>
-        ${sections}
-      </div>
-    `;
-  }
+      <h1 style="
+        font-size: 32px;
+        font-weight: 700;
+        color: #2563eb;
+        margin-bottom: 20px;
+      ">
+        ${icon} ${data.title || "Generated Page"}
+      </h1>
+
+      ${sections}
+
+    </div>
+  `;
+}
+
+
+
+
+
 
   /* ---------------------------------------------------
      BUILD PAGE — Calls backend with { text, theme }
