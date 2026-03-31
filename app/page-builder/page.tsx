@@ -853,48 +853,50 @@ function copyHTML() {
 
 
         {/* BUILD BUTTON */}
-        <button
-onClick={async () => {
-  setLoading(true);
-  await buildPage();
-  setLoading(false);
-  setSuccessBuild(true);
-  setTimeout(() => setSuccessBuild(false), 1200);
-}}
-          disabled={loading}
-          style={{
-            padding: "10px 12px",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 600,
-            borderRadius: 4,
-          }}
-        >
-{loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
-        </button>
+  {/* BUILD BUTTON */}
+<button
+  onClick={async () => {
+    setLoading(true);
+    await buildPage();
+    setLoading(false);
+    setSuccessBuild(true);
+    setTimeout(() => setSuccessBuild(false), 1200);
+  }}
+  disabled={loading}
+  style={{
+    padding: "10px 12px",
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+    borderRadius: 4,
+  }}
+>
+  {loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
+</button>
 
-        {/* COPY HTML BUTTON */}
-        <button
-onClick={async () => {
-  await copyHTML();
-  setSuccessCopy(true);
-  setTimeout(() => setSuccessCopy(false), 1200);
-}}
-          disabled={!html}
-          style={{
-            padding: "10px 12px",
-            background: "#111827",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 600,
-            borderRadius: 4,
-          }}
-        >
-          Copy HTML Code
-        </button>
+{/* COPY HTML BUTTON */}
+<button
+  onClick={async () => {
+    await copyHTML();
+    setSuccessCopy(true);
+    setTimeout(() => setSuccessCopy(false), 1200);
+  }}
+  disabled={!html}
+  style={{
+    padding: "10px 12px",
+    background: "#111827",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+    borderRadius: 4,
+  }}
+>
+  {successCopy ? "Copied!" : "Copy HTML Code"}
+</button>
+
       </div>
 
       {/* RIGHT PREVIEW PANEL */}
