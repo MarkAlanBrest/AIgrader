@@ -229,14 +229,14 @@ export default function PageBuilder() {
         if (s.type === "divider") {
           return `<hr class="divider" />`;
         }
-
+ 
         return "";
       })
       .join("");
 
-    return `
-      ${allStyles}
-      <div class="page-root theme-${theme.toLowerCase().replace(/ /g, "-")}">
+  return `
+  <div class="page-root theme-${theme.toLowerCase().replace(/ /g, "-")}">
+
         <h1 class="hero-title">${data.title || "Generated Page"}</h1>
         ${sections}
       </div>
