@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Comment Bank</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f9fafb;
+    }
+    .root {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #0b3c6d;
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .close-btn {
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .content {
+      flex: 1;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .panel {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .panel-body {
+      flex: 1;
+      padding: 6px;
+      overflow: auto;
+      font-size: 13px;
+    }
+    .panel-footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 6px;
+    }
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      cursor: pointer;
+      font-size: 12px;
+      margin: 2px;
+    }
+    .pill.selected {
+      background: #0ea5e9;
+      color: #fff;
+      border-color: #0ea5e9;
+    }
+    .row {
+      padding: 4px 6px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+    }
+    .row.selected {
+      background: #e0f2fe;
+      border: 1px solid #0ea5e9;
+    }
+    .btn {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      cursor: pointer;
+    }
+    .btn-primary {
+      border-color: #16a34a;
+      background: #22c55e;
+      color: #fff;
+    }
+    .btn-info {
+      border-color: #0284c7;
+      background: #0ea5e9;
+      color: #fff;
+    }
+    .btn-danger {
+      border-color: #b91c1c;
+      background: #ef4444;
+      color: #fff;
+    }
+    .input, .textarea {
+      width: 100%;
+      font-size: 12px;
+      padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      font-family: inherit;
+    }
+    .textarea {
+      resize: none;
+    }
+    .footer-buttons {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="root">
+    <div class="header">
+      <span>Comment Bank</span>
+      <!-- Close is handled by parent (Tampermonkey) if needed -->
+      <span class="close-btn" onclick="window.parent.postMessage({ type: 'CB_CLOSE' }, '*')">✕</span>
+    </div>
+
+    <div class="content">
+      <!-- TOP: Categories -->
+      <div class="panel" style="flex: 0 0 32%;">
+        <div class="panel-header">
+          <span>Categories</span>
+          <button id="cat-edit-toggle" class="btn">Edit</button>
+        </div>
+        <div id="cat-list" class="panel-body"></div>
+        <div id="cat-edit" class="panel-footer" style="display:none;">
+          <input id="cat-input" class="input" placeholder="New / Rename category" />
+          <div class="footer-buttons">
+            <button id="cat-add" class="btn btn-primary">Add</button>
+            <button id="cat-rename" class="btn btn-info">Rename</button>
+            <button id="cat-delete" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE: Comments -->
+      <div class="panel" style="flex: 0 0 38%;">
+        <div class="panel-header">
+          <span>Comments</span>
+          <button id="com-edit-toggle" class="btn">Edit</button>
+        </div>
+        <div id="com-list" class="panel-body"></div>
+        <div id="com-edit" class="panel-footer" style="display:none;">
+          <textarea id="com-input" class="textarea" rows="3" placeholder="New / Edit comment"></textarea>
+          <div class="footer-buttons">
+            <button id="com-add" class="btn btn-primary">Add</button>
+            <button id="com-save" class="btn btn-info">Save</button>
+            <button id="com-delete" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM: Preview -->
+      <div class="panel" style="flex: 0 0 30%;">
+        <div class="panel-header">
+          <span>Preview</span>
+          <div style="display:flex;gap:4px;">
+            <button id="preview-clear" class="btn">Clear</button>
+            <button id="preview-copy" class="btn btn-primary">Copy</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <textarea id="preview-text" class="textarea" style="height:100%;border:none;outline:none;"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "/api/test/comments";
+
+    let allComments = [];
+    let selectedCategory = null;
+    let selectedCommentId = null;
+    let catEditMode = false;
+    let comEditMode = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    const catListEl = $("cat-list");
+    const catEditToggle = $("cat-edit-toggle");
+    const catEdit = $("cat-edit");
+    const catInput = $("cat-input");
+    const catAdd = $("cat-add");
+    const catRename = $("cat-rename");
+    const catDelete = $("cat-delete");
+
+    const comListEl = $("com-list");
+    const comEditToggle = $("com-edit-toggle");
+    const comEdit = $("com-edit");
+    const comInput = $("com-input");
+    const comAdd = $("com-add");
+    const comSave = $("com-save");
+    const comDelete = $("com-delete");
+
+    const previewText = $("preview-text");
+    const previewCopy = $("preview-copy");
+    const previewClear = $("preview-clear");
+
+    async function loadComments() {
+      try {
+        const res = await fetch(API, { method: "GET" });
+        if (!res.ok) throw new Error("Failed to load");
+        allComments = await res.json();
+        renderCategories();
+        renderComments();
+      } catch (e) {
+        console.error("Load comments failed:", e);
+      }
+    }
+
+    function getCategories() {
+      const set = new Set();
+      allComments.forEach((c) => c.category && set.add(c.category));
+      return Array.from(set).sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+    }
+
+    function renderCategories() {
+      const cats = getCategories();
+      if (!selectedCategory && cats.length > 0) {
+        selectedCategory = cats[0];
+      }
+
+      catListEl.innerHTML = "";
+      if (cats.length === 0) {
+        catListEl.innerHTML = '<div style="font-size:12px;color:#6b7280;">No categories yet.</div>';
+        return;
+      }
+
+      cats.forEach((cat) => {
+        const btn = document.createElement("button");
+        btn.textContent = cat;
+        btn.className = "pill" + (cat === selectedCategory ? " selected" : "");
+        btn.onclick = () => {
+          selectedCategory = cat;
+          selectedCommentId = null;
+          comInput.value = "";
+          renderCategories();
+          renderComments();
+        };
+        catListEl.appendChild(btn);
+      });
+    }
+
+    function renderComments() {
+      comListEl.innerHTML = "";
+
+      if (!selectedCategory) {
+        comListEl.innerHTML = '<div style="font-size:12px;color:#6b7280;">No category selected.</div>';
+        return;
+      }
+
+      const items = allComments.filter((c) => c.category === selectedCategory);
+      if (items.length === 0) {
+        comListEl.innerHTML = '<div style="font-size:12px;color:#6b7280;">No comments in this category.</div>';
+        return;
+      }
+
+      items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "row" + (item.id === selectedCommentId ? " selected" : "");
+        row.textContent = item.text;
+        row.onclick = () => {
+          selectedCommentId = item.id;
+          if (!comEditMode) {
+            const current = previewText.value.trim();
+            previewText.value = current ? current + "\\n\\n" + item.text : item.text;
+          } else {
+            comInput.value = item.text;
+          }
+          renderComments();
+        };
+        comListEl.appendChild(row);
+      });
+    }
+
+    catEditToggle.onclick = () => {
+      catEditMode = !catEditMode;
+      catEdit.style.display = catEditMode ? "block" : "none";
+      catEditToggle.textContent = catEditMode ? "Done" : "Edit";
+    };
+
+    comEditToggle.onclick = () => {
+      comEditMode = !comEditMode;
+      comEdit.style.display = comEditMode ? "block" : "none";
+      comEditToggle.textContent = comEditMode ? "Done" : "Edit";
+      if (!comEditMode) {
+        comInput.value = "";
+        selectedCommentId = null;
+        renderComments();
+      }
+    };
+
+    catAdd.onclick = async () => {
+      const v = catInput.value.trim();
+      if (!v) return;
+      try {
+        await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category: v, text: "(New comment)" })
+        });
+        catInput.value = "";
+        selectedCategory = v;
+        await loadComments();
+      } catch (e) {
+        console.error("Add category failed:", e);
+      }
+    };
+
+    catRename.onclick = async () => {
+      const v = catInput.value.trim();
+      if (!v || !selectedCategory || v === selectedCategory) return;
+      try {
+        await fetch(API, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldCategory: selectedCategory, newCategory: v })
+        });
+        selectedCategory = v;
+        catInput.value = "";
+        await loadComments();
+      } catch (e) {
+        console.error("Rename category failed:", e);
+      }
+    };
+
+    catDelete.onclick = async () => {
+      if (!selectedCategory) return;
+      if (!confirm(`Delete category "${selectedCategory}" and all its comments?`)) return;
+      try {
+        await fetch(API, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category: selectedCategory })
+        });
+        selectedCategory = null;
+        await loadComments();
+      } catch (e) {
+        console.error("Delete category failed:", e);
+      }
+    };
+
+    comAdd.onclick = async () => {
+      if (!selectedCategory) return;
+      const text = comInput.value.trim();
+      if (!text) return;
+      try {
+        await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category: selectedCategory, text })
+        });
+        comInput.value = "";
+        await loadComments();
+      } catch (e) {
+        console.error("Add comment failed:", e);
+      }
+    };
+
+    comSave.onclick = async () => {
+      if (!selectedCategory || !selectedCommentId) return;
+      const text = comInput.value.trim();
+      if (!text) return;
+      try {
+        await fetch(API, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: selectedCommentId, category: selectedCategory, text })
+        });
+        comInput.value = "";
+        selectedCommentId = null;
+        await loadComments();
+      } catch (e) {
+        console.error("Save comment failed:", e);
+      }
+    };
+
+    comDelete.onclick = async () => {
+      if (!selectedCommentId) return;
+      if (!confirm("Delete this comment?")) return;
+      try {
+        await fetch(API, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: selectedCommentId })
+        });
+        comInput.value = "";
+        selectedCommentId = null;
+        await loadComments();
+      } catch (e) {
+        console.error("Delete comment failed:", e);
+      }
+    };
+
+    previewClear.onclick = () => {
+      previewText.value = "";
+    };
+
+    previewCopy.onclick = async () => {
+      const text = previewText.value.trim();
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        console.error("Copy failed:", e);
+      }
+    };
+
+    loadComments();
+  </script>
+</body>
+</html>

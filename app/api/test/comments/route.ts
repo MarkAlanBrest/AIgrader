@@ -23,7 +23,6 @@ function readComments(): CommentItem[] {
     data = [];
   }
 
-  // Normalize: ensure each item has an id
   let changed = false;
   const normalized: CommentItem[] = data.map((item, idx) => {
     if (!item.id) {
@@ -52,14 +51,13 @@ function writeComments(items: CommentItem[]) {
   fs.writeFileSync(filePath, JSON.stringify(items, null, 2), "utf-8");
 }
 
-// GET: return all comments
+// GET: all comments
 export async function GET() {
   const data = readComments();
   return Response.json(data);
 }
 
-// POST: add new comment
-// body: { category: string, text: string }
+// POST: add comment { category, text }
 export async function POST(req: Request) {
   const { category, text } = await req.json();
 
@@ -76,42 +74,40 @@ export async function POST(req: Request) {
   return Response.json({ success: true, item });
 }
 
-// PUT: update comment or rename category
-// 1) Update single comment:
-//    { id, category, text }
-// 2) Rename category:
-//    { oldCategory, newCategory }
+// PUT:
+// 1) rename category: { oldCategory, newCategory }
+// 2) update comment: { id, category?, text? }
 export async function PUT(req: Request) {
   const body = await req.json();
   const data = readComments();
 
-  // Rename category
   if (body.oldCategory && body.newCategory) {
     const oldCat = String(body.oldCategory).trim();
     const newCat = String(body.newCategory).trim();
 
     const updated = data.map((item) =>
-      item.category === oldCat
-        ? { ...item, category: newCat }
-        : item
+      item.category === oldCat ? { ...item, category: newCat } : item
     );
 
     writeComments(updated);
-    return Response.json({ success: true, updatedCount: updated.length });
+    return Response.json({ success: true });
   }
 
-  // Update single comment
   if (body.id) {
     const id = String(body.id);
     const idx = data.findIndex((c) => c.id === id);
-    if (idx === -1) {
-      return new Response("Not found", { status: 404 });
-    }
+    if (idx === -1) return new Response("Not found", { status: 404 });
 
     const updated: CommentItem = {
       ...data[idx],
-      category: body.category !== undefined ? String(body.category).trim() : data[idx].category,
-      text: body.text !== undefined ? String(body.text).trim() : data[idx].text,
+      category:
+        body.category !== undefined
+          ? String(body.category).trim()
+          : data[idx].category,
+      text:
+        body.text !== undefined
+          ? String(body.text).trim()
+          : data[idx].text,
     };
 
     data[idx] = updated;
@@ -122,14 +118,13 @@ export async function PUT(req: Request) {
   return new Response("Invalid PUT body", { status: 400 });
 }
 
-// DELETE: delete comment or entire category
-// 1) Delete single comment: { id }
-// 2) Delete category and all its comments: { category }
+// DELETE:
+// 1) delete comment: { id }
+// 2) delete category: { category }
 export async function DELETE(req: Request) {
   const body = await req.json();
   const data = readComments();
 
-  // Delete by id
   if (body.id) {
     const id = String(body.id);
     const filtered = data.filter((c) => c.id !== id);
@@ -137,7 +132,6 @@ export async function DELETE(req: Request) {
     return Response.json({ success: true, deletedId: id });
   }
 
-  // Delete entire category
   if (body.category) {
     const cat = String(body.category).trim();
     const filtered = data.filter((c) => c.category !== cat);
