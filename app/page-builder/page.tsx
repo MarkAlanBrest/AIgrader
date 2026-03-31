@@ -193,7 +193,6 @@ function getTitleContainer(theme: string, title: string) {
         align-items: center;
         gap: 8px;
       ">
-        <div style="font-size: 40px;">🌸</div>
         <div style="
           font-size: 30px;
           font-weight: 700;
@@ -221,7 +220,6 @@ function getTitleContainer(theme: string, title: string) {
         align-items: center;
         gap: 8px;
       ">
-        <div style="font-size: 40px;">🌙</div>
         <div style="
           font-size: 30px;
           font-weight: 700;
@@ -277,7 +275,6 @@ function getTitleContainer(theme: string, title: string) {
         align-items: center;
         gap: 8px;
       ">
-        <div style="font-size: 40px;">⭐</div>
         <div style="
           font-size: 30px;
           font-weight: 700;
@@ -300,7 +297,6 @@ function getTitleContainer(theme: string, title: string) {
         margin-bottom: 28px;
         text-align: center;
       ">
-        <div style="font-size: 40px;">⚪</div>
         <div style="
           font-size: 30px;
           font-weight: 700;
@@ -326,7 +322,6 @@ function getTitleContainer(theme: string, title: string) {
       align-items: center;
       gap: 8px;
     ">
-      <div style="font-size: 40px;">📘</div>
       <div style="
         font-size: 30px;
         font-weight: 700;
@@ -474,7 +469,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
   align-items: center;
   gap: 8px;
 ">
-  <div style="font-size: 40px;">📘</div>
 
   <div style="
     font-size: 30px;
