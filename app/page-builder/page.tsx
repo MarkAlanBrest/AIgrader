@@ -274,10 +274,16 @@ export default function PageBuilder() {
 function copyHTML() {
   if (!html) return;
 
-  navigator.clipboard
-    .writeText(html)
-    .catch(() => alert("Could not copy. Select and copy manually."));
+  const ta = document.createElement("textarea");
+  ta.value = html;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
 }
+
 
 
   /* ---------------------------------------------------
