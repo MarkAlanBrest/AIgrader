@@ -445,50 +445,22 @@ function buildHTMLFromJSON(data: any, theme: string) {
     })
     .join("");
 
-  return `
-    <div style="
-      font-family: Arial, sans-serif;
-      color: #111;
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    ">
-
-        ${getTitleContainer(theme, data.title || "Generated Page")}
-
-
-    <div style="
-  background: #f0f7ff;
-  border: 1px solid #c7ddff;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 28px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-">
-
+ return `
   <div style="
-    font-size: 30px;
-    font-weight: 700;
-    color: #2563eb;
+    font-family: Arial, sans-serif;
+    color: #111;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
   ">
-    ${data.title || "Generated Page"}
+
+    ${getTitleContainer(theme, data.title || "Generated Page")}
+
+    ${sections}
+
   </div>
-</div>
+`;
 
-
-
-        ${icon} ${data.title || "Generated Page"}
-      </h1>
-
-      ${sections}
-
-    </div>
-  `;
-}
 
 
 
