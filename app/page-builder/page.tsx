@@ -334,11 +334,16 @@ function getTitleContainer(theme: string, title: string) {
 }
 
 
+
+
+
+
 function buildHTMLFromJSON(data: any, theme: string) {
 
   const sections = (data.sections || [])
     .map((s: any) => {
 
+      // Basic heading
       if (s.type === "heading") {
         return `
           <h2 style="
@@ -352,6 +357,28 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // Accent heading
+      if (s.type === "headingAccent") {
+        return `
+          <div style="margin-top: 32px; margin-bottom: 20px;">
+            <h2 style="
+              font-size: 22px;
+              font-weight: 600;
+              margin: 0 0 6px 0;
+            ">
+              ${s.text}
+            </h2>
+            <div style="
+              height: 3px;
+              width: 60px;
+              background: #2563eb;
+              border-radius: 2px;
+            "></div>
+          </div>
+        `;
+      }
+
+      // Paragraph text
       if (s.type === "text") {
         return `
           <p style="
@@ -364,6 +391,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // List
       if (s.type === "list") {
         return `
           <ul style="
@@ -377,6 +405,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // Video (expects embed code)
       if (s.type === "video") {
         return `
           <div style="margin: 20px 0;">
@@ -385,6 +414,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // Container
       if (s.type === "container") {
         return `
           <div style="
@@ -399,6 +429,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // Card
       if (s.type === "card") {
         return `
           <div style="
@@ -413,6 +444,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
+      // Simple divider
       if (s.type === "divider") {
         return `
           <hr style="
@@ -420,6 +452,186 @@ function buildHTMLFromJSON(data: any, theme: string) {
             border-top: 1px solid #e5e7eb;
             margin: 32px 0;
           " />
+        `;
+      }
+
+      // Fancy divider
+      if (s.type === "dividerFancy") {
+        return `
+          <div style="
+            height: 3px;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            border-radius: 2px;
+            margin: 32px 0;
+          "></div>
+        `;
+      }
+
+      // Callout (info / warning / success / tip)
+      if (s.type === "callout") {
+        const variant = s.variant || "info";
+        let bg = "#e0f2fe";
+        let border = "#0284c7";
+
+        if (variant === "warning") {
+          bg = "#fef3c7";
+          border = "#f59e0b";
+        } else if (variant === "success") {
+          bg = "#dcfce7";
+          border = "#16a34a";
+        } else if (variant === "tip") {
+          bg = "#f3e8ff";
+          border = "#a855f7";
+        }
+
+        return `
+          <div style="
+            background: ${bg};
+            border-left: 4px solid ${border};
+            padding: 16px;
+            border-radius: 6px;
+            margin: 20px 0;
+          ">
+            ${s.text}
+          </div>
+        `;
+      }
+
+      // Two-column layout
+      if (s.type === "columns") {
+        return `
+          <div style="
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+          ">
+            <div style="flex: 1; min-width: 220px;">
+              ${s.left}
+            </div>
+            <div style="flex: 1; min-width: 220px;">
+              ${s.right}
+            </div>
+          </div>
+        `;
+      }
+
+      // Image frame / polaroid
+      if (s.type === "imageFrame") {
+        return `
+          <div style="
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: fit-content;
+            margin: 20px auto;
+            text-align: center;
+          ">
+            <img src="${s.url}" style="max-width: 100%; border-radius: 4px;">
+            ${
+              s.caption
+                ? `<div style="margin-top: 8px; font-size: 14px; color: #374151;">
+                     ${s.caption}
+                   </div>`
+                : ""
+            }
+          </div>
+        `;
+      }
+
+      // Step block
+      if (s.type === "step") {
+        return `
+          <div style="
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+          ">
+            <div style="font-weight: 700; margin-bottom: 8px;">
+              Step ${s.number}
+            </div>
+            <div>${s.text}</div>
+          </div>
+        `;
+      }
+
+      // Hero banner (inside content)
+      if (s.type === "hero") {
+        return `
+          <div style="
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            padding: 40px 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            margin-bottom: 32px;
+          ">
+            <div style="font-size: 28px; font-weight: 800;">
+              ${s.title}
+            </div>
+            ${
+              s.subtitle
+                ? `<div style="font-size: 16px; opacity: 0.9; margin-top: 8px;">
+                     ${s.subtitle}
+                   </div>`
+                : ""
+            }
+          </div>
+        `;
+      }
+
+      // File download card
+      if (s.type === "file") {
+        const label = s.label || "Download File";
+        return `
+          <div style="
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+          ">
+            <a href="${s.url}" target="_blank" style="
+              color: #4338ca;
+              font-weight: 600;
+              text-decoration: none;
+            ">
+              📄 ${label}
+            </a>
+          </div>
+        `;
+      }
+
+      // Quote block
+      if (s.type === "quote") {
+        return `
+          <div style="
+            border-left: 4px solid #2563eb;
+            padding-left: 16px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #374151;
+          ">
+            “${s.text}”
+          </div>
+        `;
+      }
+
+      // Shadowed container
+      if (s.type === "shadowBox") {
+        return `
+          <div style="
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin: 20px 0;
+          ">
+            ${s.content}
+          </div>
         `;
       }
 
@@ -445,7 +657,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
 }
 
 
-   
 
 
 
