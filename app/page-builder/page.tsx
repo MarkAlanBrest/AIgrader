@@ -337,13 +337,15 @@ function getTitleContainer(theme: string, title: string) {
 
 
 
-
 function buildHTMLFromJSON(data: any, theme: string) {
 
   const sections = (data.sections || [])
     .map((s: any) => {
 
-      // Basic heading
+      // -----------------------------
+      // BASIC TEXT BLOCKS
+      // -----------------------------
+
       if (s.type === "heading") {
         return `
           <h2 style="
@@ -357,7 +359,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Accent heading
       if (s.type === "headingAccent") {
         return `
           <div style="margin-top: 32px; margin-bottom: 20px;">
@@ -378,7 +379,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Paragraph text
       if (s.type === "text") {
         return `
           <p style="
@@ -391,7 +391,69 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // List
+      // Rich long-form paragraph
+      if (s.type === "richText") {
+        return `
+          <div style="
+            font-size: 17px;
+            line-height: 1.75;
+            margin-bottom: 22px;
+            color: #111;
+          ">
+            ${s.content}
+          </div>
+        `;
+      }
+
+      // Warm intro paragraph
+      if (s.type === "sectionIntro") {
+        return `
+          <div style="
+            font-size: 18px;
+            line-height: 1.8;
+            margin: 24px 0;
+            color: #374151;
+          ">
+            ${s.content}
+          </div>
+        `;
+      }
+
+      // Standard long body paragraph
+      if (s.type === "body") {
+        return `
+          <p style="
+            font-size: 17px;
+            line-height: 1.75;
+            margin-bottom: 20px;
+            color: #111;
+          ">
+            ${s.text}
+          </p>
+        `;
+      }
+
+      // Reading passage block
+      if (s.type === "readingSection") {
+        return `
+          <div style="
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            border-radius: 10px;
+            margin: 28px 0;
+            font-size: 17px;
+            line-height: 1.75;
+          ">
+            ${s.content}
+          </div>
+        `;
+      }
+
+      // -----------------------------
+      // LISTS / VIDEO
+      // -----------------------------
+
       if (s.type === "list") {
         return `
           <ul style="
@@ -405,7 +467,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Video (expects embed code)
       if (s.type === "video") {
         return `
           <div style="margin: 20px 0;">
@@ -414,7 +475,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Container
+      // -----------------------------
+      // BASIC CONTAINERS
+      // -----------------------------
+
       if (s.type === "container") {
         return `
           <div style="
@@ -429,7 +493,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Card
       if (s.type === "card") {
         return `
           <div style="
@@ -444,7 +507,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Simple divider
+      // -----------------------------
+      // DIVIDERS
+      // -----------------------------
+
       if (s.type === "divider") {
         return `
           <hr style="
@@ -455,7 +521,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Fancy divider
       if (s.type === "dividerFancy") {
         return `
           <div style="
@@ -467,22 +532,18 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Callout (info / warning / success / tip)
+      // -----------------------------
+      // CALLOUTS
+      // -----------------------------
+
       if (s.type === "callout") {
         const variant = s.variant || "info";
         let bg = "#e0f2fe";
         let border = "#0284c7";
 
-        if (variant === "warning") {
-          bg = "#fef3c7";
-          border = "#f59e0b";
-        } else if (variant === "success") {
-          bg = "#dcfce7";
-          border = "#16a34a";
-        } else if (variant === "tip") {
-          bg = "#f3e8ff";
-          border = "#a855f7";
-        }
+        if (variant === "warning") { bg = "#fef3c7"; border = "#f59e0b"; }
+        if (variant === "success") { bg = "#dcfce7"; border = "#16a34a"; }
+        if (variant === "tip")     { bg = "#f3e8ff"; border = "#a855f7"; }
 
         return `
           <div style="
@@ -497,26 +558,43 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Two-column layout
-      if (s.type === "columns") {
+      // -----------------------------
+      // COLUMNS (2, 3, 4 TILE GRIDS)
+      // -----------------------------
+
+      if (s.type === "tiles") {
+        const count = s.count || 2; // 2, 3, or 4
+        const width = count === 2 ? "1fr 1fr"
+                    : count === 3 ? "1fr 1fr 1fr"
+                    : "1fr 1fr 1fr 1fr";
+
         return `
           <div style="
-            display: flex;
+            display: grid;
+            grid-template-columns: ${width};
             gap: 20px;
             margin: 20px 0;
-            flex-wrap: wrap;
           ">
-            <div style="flex: 1; min-width: 220px;">
-              ${s.left}
-            </div>
-            <div style="flex: 1; min-width: 220px;">
-              ${s.right}
-            </div>
+            ${s.items.map((item: string) => `
+              <div style="
+                background: white;
+                border: 1px solid #e5e7eb;
+                padding: 16px;
+                border-radius: 8px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+                text-align: center;
+              ">
+                ${item}
+              </div>
+            `).join("")}
           </div>
         `;
       }
 
-      // Image frame / polaroid
+      // -----------------------------
+      // IMAGE FRAME
+      // -----------------------------
+
       if (s.type === "imageFrame") {
         return `
           <div style="
@@ -540,7 +618,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Step block
+      // -----------------------------
+      // STEP BLOCK
+      // -----------------------------
+
       if (s.type === "step") {
         return `
           <div style="
@@ -558,7 +639,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Hero banner (inside content)
+      // -----------------------------
+      // HERO BANNER
+      // -----------------------------
+
       if (s.type === "hero") {
         return `
           <div style="
@@ -583,7 +667,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // File download card
+      // -----------------------------
+      // FILE DOWNLOAD
+      // -----------------------------
+
       if (s.type === "file") {
         const label = s.label || "Download File";
         return `
@@ -605,7 +692,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Quote block
+      // -----------------------------
+      // QUOTE BLOCK
+      // -----------------------------
+
       if (s.type === "quote") {
         return `
           <div style="
@@ -620,7 +710,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
         `;
       }
 
-      // Shadowed container
+      // -----------------------------
+      // SHADOW BOX
+      // -----------------------------
+
       if (s.type === "shadowBox") {
         return `
           <div style="
@@ -655,8 +748,6 @@ function buildHTMLFromJSON(data: any, theme: string) {
     </div>
   `;
 }
-
-
 
 
 
