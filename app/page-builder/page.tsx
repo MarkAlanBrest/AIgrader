@@ -334,17 +334,7 @@ function getTitleContainer(theme: string, title: string) {
 }
 
 
-
 function buildHTMLFromJSON(data: any, theme: string) {
-
-  // Pick emoji icon per theme
-  const icon =
-    theme === "Card Layout" ? "⭐" :
-    theme === "Soft Pastel" ? "🌸" :
-    theme === "Dark Mode" ? "💡" :
-    theme === "Hero Banner" ? "✨" :
-    theme === "Minimal Gray" ? "🔹" :
-    "🔵"; // Modern Blue default
 
   const sections = (data.sections || [])
     .map((s: any) => {
@@ -356,11 +346,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
             font-weight: 600;
             margin-top: 32px;
             margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
           ">
-            <span style="font-size: 22px;">${icon}</span>
             ${s.text}
           </h2>
         `;
@@ -394,11 +380,7 @@ function buildHTMLFromJSON(data: any, theme: string) {
       if (s.type === "video") {
         return `
           <div style="margin: 20px 0;">
-            <iframe
-              src="${s.url}"
-              allowfullscreen
-              style="width: 100%; height: 315px; border: none; border-radius: 8px;">
-            </iframe>
+            ${s.url}
           </div>
         `;
       }
@@ -445,25 +427,25 @@ function buildHTMLFromJSON(data: any, theme: string) {
     })
     .join("");
 
- return `
-  <div style="
-    font-family: Arial, sans-serif;
-    color: #111;
-    padding: 20px;
-    max-width: 900px;
-    margin: 0 auto;
-  ">
+  return `
+    <div style="
+      font-family: Arial, sans-serif;
+      color: #111;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    ">
 
-    ${getTitleContainer(theme, data.title || "Generated Page")}
+      ${getTitleContainer(theme, data.title || "Generated Page")}
 
-    ${sections}
+      ${sections}
 
-  </div>
-`;
+    </div>
+  `;
+}
 
 
-
-
+   
 
 
 
