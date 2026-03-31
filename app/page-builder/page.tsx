@@ -271,9 +271,14 @@ export default function PageBuilder() {
   /* ---------------------------------------------------
      COPY HTML TO CLIPBOARD
   --------------------------------------------------- */
-  function copyHTML() {
-    navigator.clipboard.writeText(html);
-  }
+function copyHTML() {
+  if (!html) return;
+
+  navigator.clipboard
+    .writeText(html)
+    .catch(() => alert("Could not copy. Select and copy manually."));
+}
+
 
   /* ---------------------------------------------------
      UI LAYOUT
