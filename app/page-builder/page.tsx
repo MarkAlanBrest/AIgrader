@@ -176,6 +176,169 @@ export default function PageBuilder() {
      HTML BUILDER — Converts AI JSON → Styled HTML
   --------------------------------------------------- */
 
+function getTitleContainer(theme: string, title: string) {
+
+  // THEME: Soft Pastel
+  if (theme === "Soft Pastel") {
+    return `
+      <div style="
+        background: #ffe4e6;
+        border: 1px solid #f9a8d4;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 28px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      ">
+        <div style="font-size: 40px;">🌸</div>
+        <div style="
+          font-size: 30px;
+          font-weight: 700;
+          color: #ec4899;
+        ">
+          ${title}
+        </div>
+      </div>
+    `;
+  }
+
+  // THEME: Dark Mode
+  if (theme === "Dark Mode") {
+    return `
+      <div style="
+        background: #1f2937;
+        border: 1px solid #4b5563;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 28px;
+        text-align: center;
+        color: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      ">
+        <div style="font-size: 40px;">🌙</div>
+        <div style="
+          font-size: 30px;
+          font-weight: 700;
+          color: #93c5fd;
+        ">
+          ${title}
+        </div>
+      </div>
+    `;
+  }
+
+  // THEME: Hero Banner (Gradient)
+  if (theme === "Hero Banner") {
+    return `
+      <div style="
+        background: #f3e8ff;
+        border: 1px solid #d8b4fe;
+        padding: 24px;
+        border-radius: 14px;
+        margin-bottom: 28px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      ">
+        <div style="font-size: 42px;">✨</div>
+        <div style="
+          font-size: 32px;
+          font-weight: 800;
+          background: linear-gradient(90deg, #2563eb, #7c3aed);
+          -webkit-background-clip: text;
+          color: transparent;
+        ">
+          ${title}
+        </div>
+      </div>
+    `;
+  }
+
+  // THEME: Card Layout (Emoji-forward)
+  if (theme === "Card Layout") {
+    return `
+      <div style="
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 28px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      ">
+        <div style="font-size: 40px;">⭐</div>
+        <div style="
+          font-size: 30px;
+          font-weight: 700;
+          color: #b45309;
+        ">
+          ${title}
+        </div>
+      </div>
+    `;
+  }
+
+  // THEME: Minimal Gray
+  if (theme === "Minimal Gray") {
+    return `
+      <div style="
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 28px;
+        text-align: center;
+      ">
+        <div style="font-size: 40px;">⚪</div>
+        <div style="
+          font-size: 30px;
+          font-weight: 700;
+          color: #374151;
+        ">
+          ${title}
+        </div>
+      </div>
+    `;
+  }
+
+  // DEFAULT: Modern Blue
+  return `
+    <div style="
+      background: #f0f7ff;
+      border: 1px solid #c7ddff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 28px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    ">
+      <div style="font-size: 40px;">📘</div>
+      <div style="
+        font-size: 30px;
+        font-weight: 700;
+        color: #2563eb;
+      ">
+        ${title}
+      </div>
+    </div>
+  `;
+}
+
+
 
 function buildHTMLFromJSON(data: any, theme: string) {
 
@@ -295,6 +458,8 @@ function buildHTMLFromJSON(data: any, theme: string) {
       max-width: 900px;
       margin: 0 auto;
     ">
+
+        ${getTitleContainer(theme, data.title || "Generated Page")}
 
 
     <div style="
