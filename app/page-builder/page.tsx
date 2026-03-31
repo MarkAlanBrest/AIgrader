@@ -872,7 +872,7 @@ onClick={async () => {
             borderRadius: 4,
           }}
         >
-          {loading ? "Building..." : "Build Page"}
+{loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
         </button>
 
         {/* COPY HTML BUTTON */}
