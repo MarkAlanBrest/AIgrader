@@ -296,12 +296,32 @@ function buildHTMLFromJSON(data: any, theme: string) {
       margin: 0 auto;
     ">
 
-      <h1 style="
-        font-size: 32px;
-        font-weight: 700;
-        color: #2563eb;
-        margin-bottom: 20px;
-      ">
+
+    <div style="
+  background: #f0f7ff;
+  border: 1px solid #c7ddff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+">
+  <div style="font-size: 40px;">📘</div>
+
+  <div style="
+    font-size: 30px;
+    font-weight: 700;
+    color: #2563eb;
+  ">
+    ${data.title || "Generated Page"}
+  </div>
+</div>
+
+
+
         ${icon} ${data.title || "Generated Page"}
       </h1>
 
