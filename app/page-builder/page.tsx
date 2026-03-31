@@ -6,6 +6,10 @@ export default function PageBuilder() {
   const [input, setInput] = useState("");
   const [html, setHtml] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [successBuild, setSuccessBuild] = useState(false);
+const [successCopy, setSuccessCopy] = useState(false);
+
   const [theme, setTheme] = useState("Modern Blue");
 
   // Unified CSS for all 6 themes
@@ -848,40 +852,59 @@ function copyHTML() {
           }}
         />
 
-        {/* BUILD BUTTON */}
-        <button
-          onClick={buildPage}
-          disabled={loading}
-          style={{
-            padding: "10px 12px",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 600,
-            borderRadius: 4,
-          }}
-        >
-          {loading ? "Building..." : "Build Page"}
-        </button>
 
-        {/* COPY HTML BUTTON */}
-        <button
-          onClick={copyHTML}
-          disabled={!html}
-          style={{
-            padding: "10px 12px",
-            background: "#111827",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 600,
-            borderRadius: 4,
-          }}
-        >
-          Copy HTML Code
-        </button>
-      </div>
+{/* BUILD BUTTON */}
+<button
+  onClick={async () => {
+    setLoading(true);
+    await buildPage();
+    setLoading(false);
+    setSuccessBuild(true);
+    setTimeout(() => setSuccessBuild(false), 1200);
+  }}
+  disabled={loading}
+  style={{
+    padding: "10px 12px",
+    background: successBuild
+      ? "#16a34a"
+      : loading
+      ? "#93c5fd"
+      : "#2563eb",
+    color: "#fff",
+    border: "none",
+    cursor: loading ? "wait" : "pointer",
+    fontWeight: 600,
+    borderRadius: 4,
+    transition: "0.2s",
+    opacity: loading ? 0.8 : 1,
+  }}
+>
+  {loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
+</button>
+
+{/* COPY HTML BUTTON */}
+<button
+  onClick={async () => {
+    await copyHTML();
+    setSuccessCopy(true);
+    setTimeout(() => setSuccessCopy(false), 1200);
+  }}
+  disabled={!html}
+  style={{
+    padding: "10px 12px",
+    background: successCopy ? "#16a34a" : "#111827",
+    color: "#fff",
+    border: "none",
+    cursor: html ? "pointer" : "not-allowed",
+    fontWeight: 600,
+    borderRadius: 4,
+    transition: "0.2s",
+    opacity: html ? 1 : 0.5,
+  }}
+>
+  {successCopy ? "Copied!" : "Copy HTML Code"}
+</button>
+
 
       {/* RIGHT PREVIEW PANEL */}
       <div
