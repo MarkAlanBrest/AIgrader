@@ -20,7 +20,8 @@ export default function PageBuilder() {
 
       // When Tampermonkey sends a saved script
       if (event.data.type === "insertPrompt") {
-         setInput(prev => prev + "\n\n" + event.data.text);      }
+            setInput(event.data.text || "");
+        }
 
       // Optional: if you want the iframe to know about the prompt bank
       if (event.data.type === "promptBank") {
@@ -785,10 +786,10 @@ function buildHTMLFromJSON(data: any, theme: string) {
 async function buildPage() {
 
   // ✅ REQUIRE BOTH BOXES
-  if (!input.trim() || !content.trim()) {
-    alert("Add both prompt and content");
-    return;
-  }
+if (!input.trim()) {
+  alert("Add a prompt");
+  return;
+}
 
   setLoading(true);
 
