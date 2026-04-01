@@ -23,8 +23,9 @@ export default function PageBuilder() {
 
       // When Tampermonkey sends a saved script
       if (event.data.type === "insertPrompt") {
-            setInput(event.data.text || "");
-        }
+if (event.data.text) {
+  setInput(event.data.text);
+}        }
 
       // Optional: if you want the iframe to know about the prompt bank
       if (event.data.type === "promptBank") {
