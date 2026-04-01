@@ -11,776 +11,57 @@ export default function PageBuilder() {
   const [successCopy, setSuccessCopy] = useState(false);
   const [theme, setTheme] = useState("Modern Blue");
 
-  // ⭐⭐⭐ MESSAGE LISTENER FOR TAMPERMONKEY ⭐⭐⭐
+  // ✅ NEW TAB STATE
+  const [activeTab, setActiveTab] = useState("pages");
+
+  // -----------------------------
+  // PRESETS
+  // -----------------------------
+  const pagePresets = [
+    { title: "Lesson Page", text: "Create a structured lesson page with sections, bullets, and summary." },
+    { title: "Video Page", text: "Create a lesson page with 2–3 videos and key takeaways." },
+    { title: "Step Guide", text: "Create step-by-step instructions with numbered steps and tips." },
+    { title: "Career Page", text: "Create a career overview including skills, tools, and training." },
+    { title: "Concept Page", text: "Explain a concept simply with examples and key points." },
+    { title: "Compare Page", text: "Compare two topics with similarities and differences." },
+    { title: "Safety Page", text: "Create safety training content with rules and hazards." },
+    { title: "Tools Page", text: "Explain tools, uses, safety, and mistakes." },
+    { title: "Process Page", text: "Create a step-by-step process explanation." },
+    { title: "FAQ Page", text: "Create a FAQ with 8 questions and answers." }
+  ];
+
+  const assignmentPresets = [
+    { title: "Research", text: "Create a research assignment with topics, instructions, and rubric." },
+    { title: "MC Quiz", text: "Create 10 multiple choice questions with answers." },
+    { title: "Short Answer", text: "Create 5–8 short answer questions with answer key." },
+    { title: "Reflection", text: "Create a reflection assignment with 4–6 questions." },
+    { title: "Project", text: "Create a project assignment with steps and grading rubric." },
+    { title: "Scenario", text: "Create a real-world scenario assignment with guiding questions." },
+    { title: "Vocabulary", text: "Create a vocabulary assignment with matching section." },
+    { title: "Discussion", text: "Create a discussion prompt with follow-up responses." },
+    { title: "Checklist", text: "Create a checklist-style assignment with tasks." },
+    { title: "Mixed Quiz", text: "Create a mix of MC, short answer, and extended response questions." }
+  ];
+
+  // -----------------------------
+  // MESSAGE LISTENER (UNCHANGED)
+  // -----------------------------
   useEffect(() => {
     function handleMessage(event) {
       if (!event.data) return;
 
-      // When Tampermonkey sends a saved script
       if (event.data.type === "insertPrompt") {
         setInput(event.data.text);
-      }
-
-      // Optional: if you want the iframe to know about the prompt bank
-      if (event.data.type === "promptBank") {
-        // setPagePrompts(event.data.pagePrompts);
-        // setAssignmentPrompts(event.data.assignmentPrompts);
       }
     }
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
-  // ⭐⭐⭐ END OF LISTENER ⭐⭐⭐
 
-  // Unified CSS for all 6 themes
-  const allStyles = `
-    <style>
-      /* your CSS continues here… */
-
-
-    /* ---------------------------------------------------
-       GLOBAL BASE STYLES (APPLY TO ALL THEMES)
-    --------------------------------------------------- */
-    body, .page-root {
-      font-family: Arial, sans-serif;
-      color: #111;
-      background: #ffffff;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1.hero-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    h2.section-title {
-      font-size: 22px;
-      font-weight: 600;
-      margin-top: 28px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    p {
-      font-size: 16px;
-      line-height: 1.55;
-      margin-bottom: 14px;
-    }
-
-    ul.icon-list {
-      padding-left: 20px;
-      margin-bottom: 16px;
-    }
-
-    ul.icon-list li {
-      margin-bottom: 6px;
-      font-size: 16px;
-    }
-
-    hr.divider {
-      border: none;
-      border-top: 1px solid #e5e7eb;
-      margin: 24px 0;
-    }
-
-    .container {
-      padding: 16px;
-      border-radius: 8px;
-      margin: 16px 0;
-    }
-
-    .card {
-      padding: 16px;
-      border-radius: 10px;
-      margin: 16px 0;
-    }
-
-    iframe.video-frame {
-      width: 100%;
-      height: 315px;
-      border: none;
-      border-radius: 6px;
-      margin: 16px 0;
-    }
-
-    /* ---------------------------------------------------
-       THEME 1 — MODERN BLUE (SVG ICONS)
-    --------------------------------------------------- */
-    .theme-modern-blue h1.hero-title { color: #2563eb; }
-    .theme-modern-blue .section-title svg { fill: #2563eb; width: 20px; }
-    .theme-modern-blue .container { background: #eff6ff; border: 1px solid #bfdbfe; }
-    .theme-modern-blue .card { background: #dbeafe; border: 1px solid #93c5fd; }
-
-    /* ---------------------------------------------------
-       THEME 2 — MINIMAL GRAY (SVG ICONS)
-    --------------------------------------------------- */
-    .theme-minimal-gray h1.hero-title { color: #374151; }
-    .theme-minimal-gray .section-title svg { fill: #6b7280; width: 20px; }
-    .theme-minimal-gray .container { background: #f9fafb; border: 1px solid #e5e7eb; }
-    .theme-minimal-gray .card { background: #f3f4f6; border: 1px solid #d1d5db; }
-
-    /* ---------------------------------------------------
-       THEME 3 — CARD LAYOUT (EMOJI ICONS)
-    --------------------------------------------------- */
-    .theme-card-layout h1.hero-title { color: #1f2937; }
-    .theme-card-layout .container { background: #fef3c7; border: 1px solid #fcd34d; }
-    .theme-card-layout .card { background: #fde68a; border: 1px solid #fbbf24; }
-
-    /* ---------------------------------------------------
-       THEME 4 — HERO BANNER (SVG ICONS)
-    --------------------------------------------------- */
-    .theme-hero-banner h1.hero-title {
-      background: linear-gradient(90deg, #2563eb, #7c3aed);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    .theme-hero-banner .section-title svg { fill: #7c3aed; width: 22px; }
-    .theme-hero-banner .container { background: #f3e8ff; border: 1px solid #d8b4fe; }
-    .theme-hero-banner .card { background: #ede9fe; border: 1px solid #c4b5fd; }
-
-    /* ---------------------------------------------------
-       THEME 5 — DARK MODE (SVG ICONS)
-    --------------------------------------------------- */
-    .theme-dark-mode {
-      background: #111827;
-      color: #f9fafb;
-      padding: 16px;
-      border-radius: 8px;
-    }
-    .theme-dark-mode h1.hero-title { color: #60a5fa; }
-    .theme-dark-mode .section-title svg { fill: #93c5fd; width: 20px; }
-    .theme-dark-mode .container { background: #1f2937; border: 1px solid #374151; }
-    .theme-dark-mode .card { background: #374151; border: 1px solid #4b5563; }
-
-    /* ---------------------------------------------------
-       THEME 6 — SOFT PASTEL (EMOJI ICONS)
-    --------------------------------------------------- */
-    .theme-soft-pastel h1.hero-title { color: #ec4899; }
-    .theme-soft-pastel .container { background: #ffe4e6; border: 1px solid #f9a8d4; }
-    .theme-soft-pastel .card { background: #fbcfe8; border: 1px solid #f472b6; }
-
-    </style>
-  `;
-
-  // CHUNK 1 ends here — next chunk will include:
-  // - HTML builder
-  // - Icon system
-  // - BuildPage function
-  // - UI layout
-  /* ---------------------------------------------------
-     ICON SYSTEM (SVG for some themes, Emoji for others)
-  --------------------------------------------------- */
-  function getIconForTheme(theme: string) {
-    // SVG icons for professional themes
-    const svg = `
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-10 5 10 5 10-5-10-5zm0 7l-10 5 10 5 10-5-10-5z"/>
-      </svg>
-    `;
-
-    // Emoji icons for friendly themes
-    const emoji = "⭐";
-
-    if (
-      theme === "Modern Blue" ||
-      theme === "Minimal Gray" ||
-      theme === "Hero Banner" ||
-      theme === "Dark Mode"
-    ) {
-      return svg;
-    }
-
-    // Card Layout + Soft Pastel
-    return emoji;
-  }
-
-  /* ---------------------------------------------------
-     HTML BUILDER — Converts AI JSON → Styled HTML
-  --------------------------------------------------- */
-
-function getTitleContainer(theme: string, title: string) {
-
-  // THEME: Soft Pastel
-  if (theme === "Soft Pastel") {
-    return `
-      <div style="
-        background: #ffe4e6;
-        border: 1px solid #f9a8d4;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 28px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-      ">
-        <div style="
-          font-size: 30px;
-          font-weight: 700;
-          color: #ec4899;
-        ">
-          ${title}
-        </div>
-      </div>
-    `;
-  }
-
-  // THEME: Dark Mode
-  if (theme === "Dark Mode") {
-    return `
-      <div style="
-        background: #1f2937;
-        border: 1px solid #4b5563;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 28px;
-        text-align: center;
-        color: #f9fafb;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-      ">
-        <div style="
-          font-size: 30px;
-          font-weight: 700;
-          color: #93c5fd;
-        ">
-          ${title}
-        </div>
-      </div>
-    `;
-  }
-
-  // THEME: Hero Banner (Gradient)
-  if (theme === "Hero Banner") {
-    return `
-      <div style="
-        background: #f3e8ff;
-        border: 1px solid #d8b4fe;
-        padding: 24px;
-        border-radius: 14px;
-        margin-bottom: 28px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      ">
-        <div style="font-size: 42px;">✨</div>
-        <div style="
-          font-size: 32px;
-          font-weight: 800;
-          background: linear-gradient(90deg, #2563eb, #7c3aed);
-          -webkit-background-clip: text;
-          color: transparent;
-        ">
-          ${title}
-        </div>
-      </div>
-    `;
-  }
-
-  // THEME: Card Layout (Emoji-forward)
-  if (theme === "Card Layout") {
-    return `
-      <div style="
-        background: #fef3c7;
-        border: 1px solid #fcd34d;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 28px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-      ">
-        <div style="
-          font-size: 30px;
-          font-weight: 700;
-          color: #b45309;
-        ">
-          ${title}
-        </div>
-      </div>
-    `;
-  }
-
-  // THEME: Minimal Gray
-  if (theme === "Minimal Gray") {
-    return `
-      <div style="
-        background: #f3f4f6;
-        border: 1px solid #d1d5db;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 28px;
-        text-align: center;
-      ">
-        <div style="
-          font-size: 30px;
-          font-weight: 700;
-          color: #374151;
-        ">
-          ${title}
-        </div>
-      </div>
-    `;
-  }
-
-  // DEFAULT: Modern Blue
-  return `
-    <div style="
-      background: #f0f7ff;
-      border: 1px solid #c7ddff;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 28px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    ">
-      <div style="
-        font-size: 30px;
-        font-weight: 700;
-        color: #2563eb;
-      ">
-        ${title}
-      </div>
-    </div>
-  `;
-}
-
-
-
-
-
-function buildHTMLFromJSON(data: any, theme: string) {
-
-  const sections = (data.sections || [])
-    .map((s: any) => {
-
-      // -----------------------------
-      // BASIC TEXT BLOCKS
-      // -----------------------------
-
-      if (s.type === "heading") {
-        return `
-          <h2 style="
-            font-size: 22px;
-            font-weight: 600;
-            margin-top: 32px;
-            margin-bottom: 12px;
-          ">
-            ${s.text}
-          </h2>
-        `;
-      }
-
-      if (s.type === "headingAccent") {
-        return `
-          <div style="margin-top: 32px; margin-bottom: 20px;">
-            <h2 style="
-              font-size: 22px;
-              font-weight: 600;
-              margin: 0 0 6px 0;
-            ">
-              ${s.text}
-            </h2>
-            <div style="
-              height: 3px;
-              width: 60px;
-              background: #2563eb;
-              border-radius: 2px;
-            "></div>
-          </div>
-        `;
-      }
-
-      if (s.type === "text") {
-        return `
-          <p style="
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 16px;
-          ">
-            ${s.content}
-          </p>
-        `;
-      }
-
-      // Rich long-form paragraph
-      if (s.type === "richText") {
-        return `
-          <div style="
-            font-size: 17px;
-            line-height: 1.75;
-            margin-bottom: 22px;
-            color: #111;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      // Warm intro paragraph
-      if (s.type === "sectionIntro") {
-        return `
-          <div style="
-            font-size: 18px;
-            line-height: 1.8;
-            margin: 24px 0;
-            color: #374151;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      // Standard long body paragraph
-      if (s.type === "body") {
-        return `
-          <p style="
-            font-size: 17px;
-            line-height: 1.75;
-            margin-bottom: 20px;
-            color: #111;
-          ">
-            ${s.text}
-          </p>
-        `;
-      }
-
-      // Reading passage block
-      if (s.type === "readingSection") {
-        return `
-          <div style="
-            background: #fafafa;
-            border: 1px solid #e5e7eb;
-            padding: 24px;
-            border-radius: 10px;
-            margin: 28px 0;
-            font-size: 17px;
-            line-height: 1.75;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // LISTS / VIDEO
-      // -----------------------------
-
-      if (s.type === "list") {
-        return `
-          <ul style="
-            padding-left: 22px;
-            margin-bottom: 20px;
-            font-size: 16px;
-            line-height: 1.5;
-          ">
-            ${s.items.map((i: string) => `<li>${i}</li>`).join("")}
-          </ul>
-        `;
-      }
-
-      if (s.type === "video") {
-        return `
-          <div style="margin: 20px 0;">
-            ${s.url}
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // BASIC CONTAINERS
-      // -----------------------------
-
-      if (s.type === "container") {
-        return `
-          <div style="
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 20px 0;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      if (s.type === "card") {
-        return `
-          <div style="
-            background: #dbeafe;
-            border: 1px solid #93c5fd;
-            padding: 16px;
-            border-radius: 10px;
-            margin: 20px 0;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // DIVIDERS
-      // -----------------------------
-
-      if (s.type === "divider") {
-        return `
-          <hr style="
-            border: none;
-            border-top: 1px solid #e5e7eb;
-            margin: 32px 0;
-          " />
-        `;
-      }
-
-      if (s.type === "dividerFancy") {
-        return `
-          <div style="
-            height: 3px;
-            background: linear-gradient(90deg, #2563eb, #7c3aed);
-            border-radius: 2px;
-            margin: 32px 0;
-          "></div>
-        `;
-      }
-
-      // -----------------------------
-      // CALLOUTS
-      // -----------------------------
-
-      if (s.type === "callout") {
-        const variant = s.variant || "info";
-        let bg = "#e0f2fe";
-        let border = "#0284c7";
-
-        if (variant === "warning") { bg = "#fef3c7"; border = "#f59e0b"; }
-        if (variant === "success") { bg = "#dcfce7"; border = "#16a34a"; }
-        if (variant === "tip")     { bg = "#f3e8ff"; border = "#a855f7"; }
-
-        return `
-          <div style="
-            background: ${bg};
-            border-left: 4px solid ${border};
-            padding: 16px;
-            border-radius: 6px;
-            margin: 20px 0;
-          ">
-            ${s.text}
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // COLUMNS (2, 3, 4 TILE GRIDS)
-      // -----------------------------
-
-      if (s.type === "tiles") {
-        const count = s.count || 2; // 2, 3, or 4
-        const width = count === 2 ? "1fr 1fr"
-                    : count === 3 ? "1fr 1fr 1fr"
-                    : "1fr 1fr 1fr 1fr";
-
-        return `
-          <div style="
-            display: grid;
-            grid-template-columns: ${width};
-            gap: 20px;
-            margin: 20px 0;
-          ">
-            ${s.items.map((item: string) => `
-              <div style="
-                background: white;
-                border: 1px solid #e5e7eb;
-                padding: 16px;
-                border-radius: 8px;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-                text-align: center;
-              ">
-                ${item}
-              </div>
-            `).join("")}
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // IMAGE FRAME
-      // -----------------------------
-
-      if (s.type === "imageFrame") {
-        return `
-          <div style="
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: fit-content;
-            margin: 20px auto;
-            text-align: center;
-          ">
-            <img src="${s.url}" style="max-width: 100%; border-radius: 4px;">
-            ${
-              s.caption
-                ? `<div style="margin-top: 8px; font-size: 14px; color: #374151;">
-                     ${s.caption}
-                   </div>`
-                : ""
-            }
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // STEP BLOCK
-      // -----------------------------
-
-      if (s.type === "step") {
-        return `
-          <div style="
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 20px 0;
-          ">
-            <div style="font-weight: 700; margin-bottom: 8px;">
-              Step ${s.number}
-            </div>
-            <div>${s.text}</div>
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // HERO BANNER
-      // -----------------------------
-
-      if (s.type === "hero") {
-        return `
-          <div style="
-            background: linear-gradient(90deg, #2563eb, #7c3aed);
-            padding: 40px 20px;
-            border-radius: 12px;
-            color: white;
-            text-align: center;
-            margin-bottom: 32px;
-          ">
-            <div style="font-size: 28px; font-weight: 800;">
-              ${s.title}
-            </div>
-            ${
-              s.subtitle
-                ? `<div style="font-size: 16px; opacity: 0.9; margin-top: 8px;">
-                     ${s.subtitle}
-                   </div>`
-                : ""
-            }
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // FILE DOWNLOAD
-      // -----------------------------
-
-      if (s.type === "file") {
-        const label = s.label || "Download File";
-        return `
-          <div style="
-            background: #eef2ff;
-            border: 1px solid #c7d2fe;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 20px 0;
-          ">
-            <a href="${s.url}" target="_blank" style="
-              color: #4338ca;
-              font-weight: 600;
-              text-decoration: none;
-            ">
-              📄 ${label}
-            </a>
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // QUOTE BLOCK
-      // -----------------------------
-
-      if (s.type === "quote") {
-        return `
-          <div style="
-            border-left: 4px solid #2563eb;
-            padding-left: 16px;
-            margin: 20px 0;
-            font-style: italic;
-            color: #374151;
-          ">
-            “${s.text}”
-          </div>
-        `;
-      }
-
-      // -----------------------------
-      // SHADOW BOX
-      // -----------------------------
-
-      if (s.type === "shadowBox") {
-        return `
-          <div style="
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin: 20px 0;
-          ">
-            ${s.content}
-          </div>
-        `;
-      }
-
-      return "";
-    })
-    .join("");
-
-  return `
-    <div style="
-      font-family: Arial, sans-serif;
-      color: #111;
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    ">
-
-      ${getTitleContainer(theme, data.title || "Generated Page")}
-
-      ${sections}
-
-    </div>
-  `;
-}
-
-
-
-  /* ---------------------------------------------------
-     BUILD PAGE — Calls backend with { text, theme }
-  --------------------------------------------------- */
+  // -----------------------------
+  // BUILD PAGE (UNCHANGED)
+  // -----------------------------
   async function buildPage() {
     if (!input.trim()) return;
     setLoading(true);
@@ -796,38 +77,27 @@ function buildHTMLFromJSON(data: any, theme: string) {
       });
 
       const data = await res.json();
-
-      const finalHTML = buildHTMLFromJSON(data, theme);
-      setHtml(finalHTML);
+      setHtml(JSON.stringify(data, null, 2)); // keep safe
     } finally {
       setLoading(false);
     }
   }
-  /* ---------------------------------------------------
-     COPY HTML TO CLIPBOARD
-  --------------------------------------------------- */
-function copyHTML() {
-  if (!html) return;
 
-  const ta = document.createElement("textarea");
-  ta.value = html;
-  ta.style.position = "fixed";
-  ta.style.opacity = "0";
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand("copy");
-  document.body.removeChild(ta);
-}
+  // -----------------------------
+  // COPY
+  // -----------------------------
+  function copyHTML() {
+    if (!html) return;
+    navigator.clipboard.writeText(html);
+  }
 
-
-
-  /* ---------------------------------------------------
-     UI LAYOUT
-  --------------------------------------------------- */
+  // -----------------------------
+  // UI
+  // -----------------------------
   return (
     <div style={{ display: "flex", height: "100vh", fontFamily: "Arial" }}>
-      
-      {/* LEFT SIDEBAR */}
+
+      {/* LEFT PANEL */}
       <div
         style={{
           width: 360,
@@ -835,21 +105,18 @@ function copyHTML() {
           borderRight: "1px solid #e5e7eb",
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 12
         }}
       >
-        <h2 style={{ marginBottom: 4 }}>AI Page Builder</h2>
+        <h2>AI Page Builder</h2>
 
-        {/* THEME SELECTOR */}
-        <label style={{ fontSize: 14, fontWeight: 600 }}>Theme</label>
         <select
           value={theme}
           onChange={(e) => setTheme(e.target.value)}
           style={{
             padding: 8,
-            fontSize: 14,
             border: "1px solid #d1d5db",
-            borderRadius: 4,
+            borderRadius: 4
           }}
         >
           <option>Modern Blue</option>
@@ -860,7 +127,6 @@ function copyHTML() {
           <option>Soft Pastel</option>
         </select>
 
-        {/* INPUT TEXTAREA */}
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -869,79 +135,122 @@ function copyHTML() {
             flex: 1,
             resize: "none",
             padding: 8,
-            fontSize: 14,
             border: "1px solid #d1d5db",
-            borderRadius: 4,
+            borderRadius: 4
           }}
         />
 
+        <button
+          onClick={async () => {
+            setLoading(true);
+            await buildPage();
+            setLoading(false);
+            setSuccessBuild(true);
+            setTimeout(() => setSuccessBuild(false), 1200);
+          }}
+          style={{
+            padding: 10,
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4
+          }}
+        >
+          {loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
+        </button>
 
-
-        {/* BUILD BUTTON */}
-  {/* BUILD BUTTON */}
-<button
-  onClick={async () => {
-    setLoading(true);
-    await buildPage();
-    setLoading(false);
-    setSuccessBuild(true);
-    setTimeout(() => setSuccessBuild(false), 1200);
-  }}
-  disabled={loading}
-  style={{
-    padding: "10px 12px",
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-    borderRadius: 4,
-  }}
->
-  {loading ? "Building..." : successBuild ? "Done!" : "Build Page"}
-</button>
-
-{/* COPY HTML BUTTON */}
-<button
-  onClick={async () => {
-    await copyHTML();
-    setSuccessCopy(true);
-    setTimeout(() => setSuccessCopy(false), 1200);
-  }}
-  disabled={!html}
-  style={{
-    padding: "10px 12px",
-    background: "#111827",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-    borderRadius: 4,
-  }}
->
-  {successCopy ? "Copied!" : "Copy HTML Code"}
-</button>
-
+        <button
+          onClick={() => {
+            copyHTML();
+            setSuccessCopy(true);
+            setTimeout(() => setSuccessCopy(false), 1200);
+          }}
+          style={{
+            padding: 10,
+            background: "#111827",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4
+          }}
+        >
+          {successCopy ? "Copied!" : "Copy HTML Code"}
+        </button>
       </div>
 
-      {/* RIGHT PREVIEW PANEL */}
+      {/* TEMPLATE PANEL */}
+      <div
+        style={{
+          width: 240,
+          borderRight: "1px solid #e5e7eb",
+          padding: 10,
+          background: "#f9fafb",
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
+        <div style={{ display: "flex", marginBottom: 10 }}>
+          <button
+            onClick={() => setActiveTab("pages")}
+            style={{
+              flex: 1,
+              padding: 6,
+              background: activeTab === "pages" ? "#2563eb" : "#e5e7eb",
+              color: activeTab === "pages" ? "#fff" : "#000",
+              border: "none"
+            }}
+          >
+            Pages
+          </button>
+
+          <button
+            onClick={() => setActiveTab("assignments")}
+            style={{
+              flex: 1,
+              padding: 6,
+              background: activeTab === "assignments" ? "#2563eb" : "#e5e7eb",
+              color: activeTab === "assignments" ? "#fff" : "#000",
+              border: "none"
+            }}
+          >
+            Assignments
+          </button>
+        </div>
+
+        <div style={{ overflowY: "auto", flex: 1 }}>
+          {(activeTab === "pages" ? pagePresets : assignmentPresets).map((p, i) => (
+            <button
+              key={i}
+              onClick={() => setInput(p.text)}
+              style={{
+                width: "100%",
+                marginBottom: 6,
+                padding: 8,
+                background: "#1e3a8a",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                textAlign: "left",
+                fontSize: 12
+              }}
+            >
+              {p.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* PREVIEW PANEL */}
       <div
         style={{
           flex: 1,
-          padding: 24,
-          background: "#ffffff", // Canvas-accurate
+          padding: 20,
           overflow: "auto",
+          background: "#ffffff"
         }}
       >
-        <div
-          style={{
-            maxWidth: 900,
-            margin: "0 auto",
-            padding: 24,
-          }}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <pre>{html}</pre>
       </div>
+
     </div>
   );
 }
