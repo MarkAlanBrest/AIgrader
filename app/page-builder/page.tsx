@@ -791,7 +791,8 @@ async function buildPage() {
   console.log("INPUT:", input);
   console.log("CONTENT:", content);
   // ✅ REQUIRE BOTH BOXES
-if (!input.trim()) {
+
+if (!input || input.length === 0) {
   alert("Add a prompt");
   return;
 }
