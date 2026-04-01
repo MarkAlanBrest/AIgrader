@@ -1,18 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function PageBuilder() {
+
   const [input, setInput] = useState("");
   const [html, setHtml] = useState("");
   const [loading, setLoading] = useState(false);
   const [successBuild, setSuccessBuild] = useState(false);
-const [successCopy, setSuccessCopy] = useState(false);
+  const [successCopy, setSuccessCopy] = useState(false);
   const [theme, setTheme] = useState("Modern Blue");
+
+  // ⭐⭐⭐ MESSAGE LISTENER FOR TAMPERMONKEY ⭐⭐⭐
+  useEffect(() => {
+    function handleMessage(event) {
+      if (!event.data) return;
+
+      // When Tampermonkey sends a saved script
+      if (event.data.type === "insertPrompt") {
+        setInput(event.data.text);
+      }
+
+      // Optional: if you want the iframe to know about the prompt bank
+      if (event.data.type === "promptBank") {
+        // setPagePrompts(event.data.pagePrompts);
+        // setAssignmentPrompts(event.data.assignmentPrompts);
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+  // ⭐⭐⭐ END OF LISTENER ⭐⭐⭐
 
   // Unified CSS for all 6 themes
   const allStyles = `
     <style>
+      /* your CSS continues here… */
+
 
     /* ---------------------------------------------------
        GLOBAL BASE STYLES (APPLY TO ALL THEMES)
