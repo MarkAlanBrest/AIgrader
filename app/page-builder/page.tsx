@@ -511,7 +511,8 @@ Organize it clearly and format it visually.
 
     });
 
-    const data = await res.json();
+const data = await res.json();
+console.log("API DATA:", data);
 
 const finalHTML = buildHTMLFromJSON(data);    
 setHtml(finalHTML);
