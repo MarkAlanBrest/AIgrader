@@ -1,5 +1,4 @@
-console.log("INPUT:", input);
-console.log("CONTENT:", content);
+
 
 "use client";
 
