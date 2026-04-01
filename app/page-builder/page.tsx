@@ -788,6 +788,8 @@ function buildHTMLFromJSON(data: any, theme: string) {
 --------------------------------------------------- */
 async function buildPage() {
 
+  console.log("INPUT:", input);
+  console.log("CONTENT:", content);
   // ✅ REQUIRE BOTH BOXES
 if (!input.trim()) {
   alert("Add a prompt");
