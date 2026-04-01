@@ -55,8 +55,7 @@ if (event.data.text) {
 
 
 
-function buildHTMLFromJSON(data: any)
-
+function buildHTMLFromJSON(data: any) {
   const sections = (data.sections || [])
     .map((s: any) => {
 
@@ -514,7 +513,8 @@ Organize it clearly and format it visually.
 
     const data = await res.json();
 
-const finalHTML = buildHTMLFromJSON(data);    setHtml(finalHTML);
+const finalHTML = buildHTMLFromJSON(data);    
+setHtml(finalHTML);
 
   } finally {
     setLoading(false);
