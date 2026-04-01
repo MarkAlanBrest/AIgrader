@@ -11,6 +11,8 @@ export default function PageBuilder() {
   const [successCopy, setSuccessCopy] = useState(false);
   const [theme, setTheme] = useState("Modern Blue");
 
+  const [content, setContent] = useState("");
+
   // ⭐⭐⭐ MESSAGE LISTENER FOR TAMPERMONKEY ⭐⭐⭐
   useEffect(() => {
     function handleMessage(event) {
@@ -18,8 +20,7 @@ export default function PageBuilder() {
 
       // When Tampermonkey sends a saved script
       if (event.data.type === "insertPrompt") {
-        setInput(event.data.text);
-      }
+         setInput(prev => prev + "\n\n" + event.data.text);      }
 
       // Optional: if you want the iframe to know about the prompt bank
       if (event.data.type === "promptBank") {
@@ -778,31 +779,53 @@ function buildHTMLFromJSON(data: any, theme: string) {
 
 
 
-  /* ---------------------------------------------------
-     BUILD PAGE — Calls backend with { text, theme }
-  --------------------------------------------------- */
-  async function buildPage() {
-    if (!input.trim()) return;
-    setLoading(true);
+/* ---------------------------------------------------
+   BUILD PAGE — Calls backend with combined prompt + content
+--------------------------------------------------- */
+async function buildPage() {
 
-    try {
-      const res = await fetch("/api/generate-page", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: input,
-          theme: theme
-        })
-      });
-
-      const data = await res.json();
-
-      const finalHTML = buildHTMLFromJSON(data, theme);
-      setHtml(finalHTML);
-    } finally {
-      setLoading(false);
-    }
+  // ✅ REQUIRE BOTH BOXES
+  if (!input.trim() || !content.trim()) {
+    alert("Add both prompt and content");
+    return;
   }
+
+  setLoading(true);
+
+  try {
+
+    // ✅ BUILD FINAL PROMPT (before fetch)
+    const finalPrompt = `
+${input}
+
+CONTENT TO USE:
+${content}
+
+INSTRUCTIONS:
+Use the provided content to build the page.
+Do NOT ignore the content.
+Organize it clearly and format it visually.
+`;
+
+    // ✅ SEND TO API
+    const res = await fetch("/api/generate-page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: finalPrompt,
+        theme: theme
+      })
+    });
+
+    const data = await res.json();
+
+    const finalHTML = buildHTMLFromJSON(data, theme);
+    setHtml(finalHTML);
+
+  } finally {
+    setLoading(false);
+  }
+}
   /* ---------------------------------------------------
      COPY HTML TO CLIPBOARD
   --------------------------------------------------- */
@@ -838,42 +861,54 @@ function copyHTML() {
           gap: 12,
         }}
       >
-        <h2 style={{ marginBottom: 4 }}>AI Page Builder</h2>
+      <h2 style={{ marginBottom: 4 }}>AI Page Builder</h2>
 
-        {/* THEME SELECTOR */}
-        <label style={{ fontSize: 14, fontWeight: 600 }}>Theme</label>
-        <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          style={{
-            padding: 8,
-            fontSize: 14,
-            border: "1px solid #d1d5db",
-            borderRadius: 4,
-          }}
-        >
-          <option>Modern Blue</option>
-          <option>Minimal Gray</option>
-          <option>Card Layout</option>
-          <option>Hero Banner</option>
-          <option>Dark Mode</option>
-          <option>Soft Pastel</option>
-        </select>
+<p style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+  Build your prompt → Add content → Generate page
+</p>
+
+      
 
         {/* INPUT TEXTAREA */}
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste notes, outline, links..."
-          style={{
-            flex: 1,
-            resize: "none",
-            padding: 8,
-            fontSize: 14,
-            border: "1px solid #d1d5db",
-            borderRadius: 4,
-          }}
-        />
+
+
+   {/* AI PROMPT BOX */}
+<label style={{ fontSize: 14, fontWeight: 600 }}>
+  AI Prompt (from Builder)
+</label>
+
+<textarea
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  placeholder="Your AI prompt will appear here..."
+  style={{
+    height: 120,
+    resize: "none",
+    padding: 8,
+    fontSize: 14,
+    border: "1px solid #d1d5db",
+    borderRadius: 4,
+  }}
+/>
+
+{/* CONTENT BOX */}
+<label style={{ fontSize: 14, fontWeight: 600 }}>
+  Learning Content / Material
+</label>
+
+<textarea
+  value={content}
+  onChange={(e) => setContent(e.target.value)}
+  placeholder="Paste lesson material, notes, or text here..."
+  style={{
+    flex: 1,
+    resize: "none",
+    padding: 8,
+    fontSize: 14,
+    border: "1px solid #d1d5db",
+    borderRadius: 4,
+  }}
+/>
 
 
 
