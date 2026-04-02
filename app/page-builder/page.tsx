@@ -40,71 +40,116 @@ export default function PageBuilder() {
   /* ---------------------------------------------------
      CANVAS-SAFE HTML BUILDER
   --------------------------------------------------- */
-  function buildHTMLFromJSON(data: any) {
-    const sections = (data.sections || [])
-      .map((s: any) => {
-        /* -----------------------------
-           HEADING
-        ----------------------------- */
-        if (s.type === "heading") {
-          return `<h2>${sanitize(s.text)}</h2>`;
-        }
 
-        /* -----------------------------
-           TEXT
-        ----------------------------- */
-        if (s.type === "text") {
-          return `<p>${sanitize(s.content)}</p>`;
-        }
 
-        /* -----------------------------
-           LIST (Canvas-safe)
-        ----------------------------- */
-        if (s.type === "list") {
-          const items = (s.items || []).map((i: string) => `<li>${sanitize(i)}</li>`).join("");
-          return `<ul>${items}</ul>`;
-        }
 
-        /* -----------------------------
-           CALLOUT (Canvas-safe)
-        ----------------------------- */
-        if (s.type === "callout") {
-          const style = sanitize(s.style || "info").toUpperCase();
-          return `<div><strong>${style}:</strong> ${sanitize(s.content)}</div>`;
-        }
+function buildHTMLFromJSON(data: any) {
+  const clean = (t: string) =>
+    (t || "")
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
-        /* -----------------------------
-           DIVIDER
-        ----------------------------- */
-        if (s.type === "divider") {
-          return `<hr />`;
-        }
+  let html = "";
 
-        /* -----------------------------
-           GRID → TABLE (Canvas-safe)
-        ----------------------------- */
-        if (s.type === "grid") {
-          const cells = (s.items || [])
-            .map((i: string) => `<td>${sanitize(i)}</td>`)
-            .join("");
+  /* -----------------------------------------
+     TITLE BANNER
+  ----------------------------------------- */
+  html += `
+    <table style="width:100%;background:#2563eb;color:white;padding:24px;border-radius:6px;margin-bottom:24px;">
+      <tr><td>
+        <h1 style="margin:0;font-size:28px;">${clean(data.title || "Generated Page")}</h1>
+      </td></tr>
+    </table>
+  `;
 
-          return `<table><tr>${cells}</tr></table>`;
-        }
+  /* -----------------------------------------
+     SECTIONS
+  ----------------------------------------- */
+  for (const s of data.sections || []) {
+    /* HEADING */
+    if (s.type === "heading") {
+      html += `
+        <h2 style="margin-top:24px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">
+          ${clean(s.text)}
+        </h2>
+      `;
+    }
 
-        return "";
-      })
-      .join("");
+    /* TEXT */
+    if (s.type === "text") {
+      html += `
+        <p style="font-size:16px;line-height:1.6;margin:12px 0;">
+          ${clean(s.content)}
+        </p>
+      `;
+    }
 
-    /* -----------------------------
-       FINAL CANVAS-SAFE WRAPPER
-    ----------------------------- */
-    return `
-      <div>
-        <h1>${sanitize(data.title || "Generated Page")}</h1>
-        ${sections}
-      </div>
-    `;
+    /* LIST */
+    if (s.type === "list") {
+      const items = (s.items || [])
+        .map((i: string) => `<li style="margin:6px 0;">${clean(i)}</li>`)
+        .join("");
+
+      html += `
+        <ul style="margin:12px 0 12px 20px;font-size:16px;line-height:1.6;">
+          ${items}
+        </ul>
+      `;
+    }
+
+    /* CALLOUT */
+    if (s.type === "callout") {
+      const bg =
+        s.style === "warning"
+          ? "#fff3cd"
+          : s.style === "success"
+          ? "#d1fae5"
+          : "#e0f2fe"; // info default
+
+      html += `
+        <table style="width:100%;background:${bg};padding:16px;border-radius:6px;margin:20px 0;">
+          <tr><td style="font-size:16px;line-height:1.6;">
+            💡 ${clean(s.content)}
+          </td></tr>
+        </table>
+      `;
+    }
+
+    /* DIVIDER */
+    if (s.type === "divider") {
+      html += `<hr style="margin:32px 0;border:0;border-top:1px solid #e5e7eb;">`;
+    }
+
+    /* GRID → CARDS */
+    if (s.type === "grid") {
+      const colWidth = 100 / (s.columns || 3);
+
+      html += `<table style="width:100%;margin:20px 0;"><tr>`;
+
+      for (const item of s.items || []) {
+        html += `
+          <td style="width:${colWidth}%;padding:10px;vertical-align:top;">
+            <table style="width:100%;border:1px solid #e5e7eb;padding:16px;border-radius:6px;">
+              <tr><td style="font-size:16px;line-height:1.6;">
+                ${clean(item)}
+              </td></tr>
+            </table>
+          </td>
+        `;
+      }
+
+      html += `</tr></table>`;
+    }
   }
+
+  return `<div style="font-family:Arial, sans-serif;">${html}</div>`;
+}
+
+
+
+
+
 
   /* ---------------------------------------------------
      BUILD PAGE (CALL BACKEND)
