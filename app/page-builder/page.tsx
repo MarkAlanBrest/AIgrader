@@ -50,13 +50,70 @@ function buildHTMLFromJSON(data: any) {
       .replace(/\s+/g, " ")
       .trim();
 
+  /* -----------------------------------------
+     THEME PALETTE
+  ----------------------------------------- */
+  const themes = {
+    blue: {
+      banner: "#2563eb",
+      divider: "#e5e7eb",
+      info: "#e0f2fe",
+      success: "#d1fae5",
+      warning: "#fff3cd",
+      cardBorder: "#e5e7eb"
+    },
+    green: {
+      banner: "#059669",
+      divider: "#bbf7d0",
+      info: "#d1fae5",
+      success: "#bbf7d0",
+      warning: "#fef9c3",
+      cardBorder: "#bbf7d0"
+    },
+    purple: {
+      banner: "#7c3aed",
+      divider: "#e9d5ff",
+      info: "#ede9fe",
+      success: "#f3e8ff",
+      warning: "#fef9c3",
+      cardBorder: "#e9d5ff"
+    },
+    orange: {
+      banner: "#ea580c",
+      divider: "#fed7aa",
+      info: "#ffedd5",
+      success: "#fde68a",
+      warning: "#fff7ed",
+      cardBorder: "#fed7aa"
+    },
+    slate: {
+      banner: "#475569",
+      divider: "#cbd5e1",
+      info: "#e2e8f0",
+      success: "#cbd5e1",
+      warning: "#f1f5f9",
+      cardBorder: "#cbd5e1"
+    },
+    dark: {
+      banner: "#111827",
+      divider: "#374151",
+      info: "#1f2937",
+      success: "#374151",
+      warning: "#4b5563",
+      cardBorder: "#374151"
+    }
+  };
+
+  const themeName = data.theme || "blue";
+  const theme = themes[themeName] || themes.blue;
+
   let html = "";
 
   /* -----------------------------------------
      TITLE BANNER
   ----------------------------------------- */
   html += `
-    <table style="width:100%;background:#2563eb;color:white;padding:24px;border-radius:6px;margin-bottom:24px;">
+    <table style="width:100%;background:${theme.banner};color:white;padding:24px;border-radius:6px;margin-bottom:24px;">
       <tr><td>
         <h1 style="margin:0;font-size:28px;">${clean(data.title || "Generated Page")}</h1>
       </td></tr>
@@ -70,7 +127,7 @@ function buildHTMLFromJSON(data: any) {
     /* HEADING */
     if (s.type === "heading") {
       html += `
-        <h2 style="margin-top:24px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">
+        <h2 style="margin-top:24px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid ${theme.divider};">
           ${clean(s.text)}
         </h2>
       `;
@@ -102,10 +159,10 @@ function buildHTMLFromJSON(data: any) {
     if (s.type === "callout") {
       const bg =
         s.style === "warning"
-          ? "#fff3cd"
+          ? theme.warning
           : s.style === "success"
-          ? "#d1fae5"
-          : "#e0f2fe"; // info default
+          ? theme.success
+          : theme.info;
 
       html += `
         <table style="width:100%;background:${bg};padding:16px;border-radius:6px;margin:20px 0;">
@@ -118,7 +175,7 @@ function buildHTMLFromJSON(data: any) {
 
     /* DIVIDER */
     if (s.type === "divider") {
-      html += `<hr style="margin:32px 0;border:0;border-top:1px solid #e5e7eb;">`;
+      html += `<hr style="margin:32px 0;border:0;border-top:1px solid ${theme.divider};">`;
     }
 
     /* GRID → CARDS */
@@ -130,7 +187,7 @@ function buildHTMLFromJSON(data: any) {
       for (const item of s.items || []) {
         html += `
           <td style="width:${colWidth}%;padding:10px;vertical-align:top;">
-            <table style="width:100%;border:1px solid #e5e7eb;padding:16px;border-radius:6px;">
+            <table style="width:100%;border:1px solid ${theme.cardBorder};padding:16px;border-radius:6px;">
               <tr><td style="font-size:16px;line-height:1.6;">
                 ${clean(item)}
               </td></tr>
@@ -145,6 +202,8 @@ function buildHTMLFromJSON(data: any) {
 
   return `<div style="font-family:Arial, sans-serif;">${html}</div>`;
 }
+
+
 
 
 
