@@ -1,150 +1,101 @@
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  try {
-    const { text, theme } = await req.json();
+function buildHTMLFromJSON(data: any) {
+  if (!data || !data.sections) return "<div>No content</div>";
 
-    if (!text) {
-      return Response.json({ error: "No text provided" }, { status: 400 });
-    }
+  return `
+    <div style="padding:20px;font-family:sans-serif;">
+      <h1 style="font-size:28px;margin-bottom:20px;">
+        ${data.title || "Generated Page"}
+      </h1>
 
-    if (!theme) {
-      return Response.json({ error: "No theme provided" }, { status: 400 });
-    }
+      ${data.sections.map((section: any) => {
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return Response.json({ error: "Missing API key" }, { status: 500 });
-    }
+        if (section.type === "heading") {
+          return `<h2 style="margin-top:20px;">${section.text}</h2>`;
+        }
 
-    /* -------------------------------------------------------
-       THEME STYLE GUIDES (AI-FRIENDLY)
-    ------------------------------------------------------- */
-    const themeGuides: Record<string, string> = {
-      "Modern Blue": `
-Use SVG icons.
-Use a clean academic tone.
-Use .container for grouped info.
-Use .card for highlighted info.
-Use .divider between major sections.
-      `,
-      "Minimal Gray": `
-Use SVG icons.
-Use a neutral, minimal tone.
-Use .container for grouped info.
-Use .card sparingly.
-Use .divider only when needed.
-      `,
-      "Card Layout": `
-Use emoji icons.
-Use short, friendly language.
-Use .card frequently.
-Use .container for grouping.
-Use .divider to break sections.
-      `,
-      "Hero Banner": `
-Use SVG icons.
-Use bold, energetic tone.
-Use .container for supporting info.
-Use .card for key callouts.
-Use .divider between major sections.
-      `,
-      "Dark Mode": `
-Use SVG icons.
-Use concise, high-contrast language.
-Use .container for structure.
-Use .card for emphasis.
-Use .divider to break content.
-      `,
-      "Soft Pastel": `
-Use emoji icons.
-Use warm, friendly tone.
-Use .container for soft grouping.
-Use .card for highlights.
-Use .divider lightly.
-      `
-    };
+        if (section.type === "text") {
+          return `<p>${section.content}</p>`;
+        }
 
-    const styleGuide = themeGuides[theme] || "";
+        if (section.type === "list") {
+          return `<ul>${section.items.map((i: string) => `<li>${i}</li>`).join("")}</ul>`;
+        }
 
-    /* -------------------------------------------------------
-       CALL OPENAI
-    ------------------------------------------------------- */
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.4,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: `
-You are generating structured JSON for a Canvas page builder.
+        if (section.type === "divider") {
+          return `<hr style="margin:20px 0;" />`;
+        }
 
-THEME: ${theme}
+        // 🔥 SPLIT LAYOUT
+        if (section.type === "split") {
+          return `
+            <div style="display:flex;gap:20px;margin:20px 0;">
+              <div style="flex:1;">${section.left}</div>
+              <div style="flex:1;">${section.right}</div>
+            </div>
+          `;
+        }
 
-STYLE GUIDE:
-${styleGuide}
+        // 🔥 GRID / PANELS
+        if (section.type === "grid") {
+          const cols = section.columns || 3;
+          return `
+            <div style="
+              display:grid;
+              grid-template-columns: repeat(${cols}, 1fr);
+              gap:16px;
+              margin:20px 0;
+            ">
+              ${section.items.map((item: string) => `
+                <div style="
+                  padding:12px;
+                  border:1px solid #ddd;
+                  border-radius:8px;
+                ">
+                  ${item}
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
 
-Return ONLY valid JSON in this exact format:
+        // 🔥 CALLOUT BOXES
+        if (section.type === "callout") {
+          let bg = "#eef";
 
-{
-  "title": "string",
-  "sections": [
-    { "type": "heading", "text": "string" },
-    { "type": "text", "content": "string" },
-    { "type": "list", "items": ["string"] },
-    { "type": "video", "url": "string" },
-    { "type": "container", "content": "string" },
-    { "type": "card", "content": "string" },
-    { "type": "divider" }
-  ]
+          if (section.style === "warning") bg = "#fff3cd";
+          if (section.style === "success") bg = "#d4edda";
+
+          return `
+            <div style="
+              background:${bg};
+              padding:12px;
+              border-radius:6px;
+              margin:15px 0;
+            ">
+              ${section.content}
+            </div>
+          `;
+        }
+
+        return "";
+
+      }).join("")}
+
+    </div>
+    `;
 }
 
-Rules:
-- No markdown.
-- No explanations.
-- No extra fields.
-- No nulls.
-- No empty objects.
-- All content must follow the theme.
-`
-          },
-          {
-            role: "user",
-            content: text
-          }
-        ]
-      })
-    });
+export async function POST(req: NextRequest) {
+  try {
+    const { text } = await req.json();
 
-    const data = await aiRes.json();
-    const raw = data?.choices?.[0]?.message?.content || "{}";
+    const data = { sections: [] };
+    const finalHTML = buildHTMLFromJSON(data);
 
-    /* -------------------------------------------------------
-       SAFE JSON PARSE
-    ------------------------------------------------------- */
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = {
-        title: "Generated Page",
-        sections: [{ type: "text", content: text }]
-      };
-    }
-
-    return Response.json(parsed);
-  } catch (err) {
-    return Response.json(
-      { error: "Server error", details: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ html: finalHTML });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to generate page" }, { status: 500 });
   }
 }
