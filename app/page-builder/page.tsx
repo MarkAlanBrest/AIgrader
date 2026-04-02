@@ -222,16 +222,25 @@ function buildHTMLFromJSON(data: any) {
     setLoading(true);
 
     try {
-      const finalPrompt = `
+
+
+
+const finalPrompt = `
+You MUST use ALL of the information in REQUIRED_CONTENT.
+Do NOT skip steps. Do NOT remove instructions.
+You may rewrite the text in clearer language, but the meaning and intent must stay the same.
+
+JSON_TEMPLATE:
 ${input}
 
-CONTENT TO USE:
+REQUIRED_CONTENT:
 ${content}
 
-INSTRUCTIONS:
-Use the provided content to build the page.
-Return ONLY JSON.
-      `;
+Return ONLY valid JSON.
+`;
+
+
+
 
       const res = await fetch("/api/generate-page", {
         method: "POST",
