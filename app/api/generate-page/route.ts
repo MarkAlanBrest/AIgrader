@@ -14,13 +14,16 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.4,
-        messages: [
-          {
-            role: "system",
-            content: `
+      
+      
+      
+      
+body: JSON.stringify({
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "system",
+      content: `
 You are a strict JSON generator.
 
 RULES:
@@ -47,15 +50,19 @@ REQUIRED STRUCTURE:
     { "type": "text", "content": "string" }
   ]
 }
-          `,
-          },
-          {
-            role: "user",
-            content: text,
-          },
-        ],
-      }),
+      `,
+    },
+    {
+      role: "user",
+      content: text,
+    },
+  ],
+  response_format: { type: "json_object" }, // 🔥 THIS LINE FIXES IT
+}),
     });
+
+
+
 
     const data = await response.json();
     const aiText = data.choices?.[0]?.message?.content || "";
