@@ -504,8 +504,9 @@ Organize it clearly and format it visually.
     const res = await fetch("/api/generate-page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  text: finalPrompt
+    body: JSON.stringify({
+  text: finalPrompt,
+  theme: "none"
 })
 
 
