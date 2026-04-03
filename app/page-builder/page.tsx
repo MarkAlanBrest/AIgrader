@@ -204,7 +204,6 @@ function buildHTMLFromJSON(data: any) {
 }
 
 
-
 function buildAssignmentHTMLFromJSON(data: any) {
   const clean = (t: string) =>
     (t || "")
@@ -216,11 +215,17 @@ function buildAssignmentHTMLFromJSON(data: any) {
 
   html += `<div style="font-family:Arial, sans-serif; max-width:900px; margin:auto;">`;
 
-  html += `<h1 style="margin-bottom:16px;">${clean(data.title)}</h1>`;
+  // TITLE
+  html += `<h1 style="margin-bottom:20px;">${clean(data.title)}</h1>`;
 
   for (const s of data.sections || []) {
+
     if (s.type === "heading") {
-      html += `<h2 style="margin-top:20px;">${clean(s.text)}</h2>`;
+      html += `
+        <h2 style="margin-top:24px;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;">
+          ${clean(s.text)}
+        </h2>
+      `;
     }
 
     if (s.type === "text") {
@@ -229,18 +234,18 @@ function buildAssignmentHTMLFromJSON(data: any) {
 
     if (s.type === "list") {
       const items = (s.items || [])
-        .map((i: string) => `<li>${clean(i)}</li>`)
+        .map((i: string) => `<li style="margin:6px 0;">${clean(i)}</li>`)
         .join("");
 
-      html += `<ul style="margin-left:20px;">${items}</ul>`;
+      html += `<ul style="margin:10px 0 10px 20px;">${items}</ul>`;
     }
 
     if (s.type === "grid") {
       const items = (s.items || [])
-        .map((i: string) => `<li>${clean(i)}</li>`)
+        .map((i: string) => `<li style="margin:6px 0;">${clean(i)}</li>`)
         .join("");
 
-      html += `<ul style="margin-left:20px;">${items}</ul>`;
+      html += `<ul style="margin:10px 0 10px 20px;">${items}</ul>`;
     }
   }
 
@@ -248,8 +253,6 @@ function buildAssignmentHTMLFromJSON(data: any) {
 
   return html;
 }
-
-
 
 
   /* ---------------------------------------------------
