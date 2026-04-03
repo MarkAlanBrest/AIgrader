@@ -205,7 +205,49 @@ function buildHTMLFromJSON(data: any) {
 
 
 
+function buildAssignmentHTMLFromJSON(data: any) {
+  const clean = (t: string) =>
+    (t || "")
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
+  let html = "";
+
+  html += `<div style="font-family:Arial, sans-serif; max-width:900px; margin:auto;">`;
+
+  html += `<h1 style="margin-bottom:16px;">${clean(data.title)}</h1>`;
+
+  for (const s of data.sections || []) {
+    if (s.type === "heading") {
+      html += `<h2 style="margin-top:20px;">${clean(s.text)}</h2>`;
+    }
+
+    if (s.type === "text") {
+      html += `<p style="margin:10px 0;">${clean(s.content)}</p>`;
+    }
+
+    if (s.type === "list") {
+      const items = (s.items || [])
+        .map((i: string) => `<li>${clean(i)}</li>`)
+        .join("");
+
+      html += `<ul style="margin-left:20px;">${items}</ul>`;
+    }
+
+    if (s.type === "grid") {
+      const items = (s.items || [])
+        .map((i: string) => `<li>${clean(i)}</li>`)
+        .join("");
+
+      html += `<ul style="margin-left:20px;">${items}</ul>`;
+    }
+  }
+
+  html += `</div>`;
+
+  return html;
+}
 
 
 
@@ -239,21 +281,25 @@ ${content}
 Return ONLY valid JSON.
 `;
 
+const res = await fetch("/api/generate-page", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: finalPrompt }),
+});
 
+const data = await res.json();
 
+const isAssignment = input.includes("Canvas assignment");
 
-      const res = await fetch("/api/generate-page", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: finalPrompt }),
-      });
+const finalHTML = isAssignment
+  ? buildAssignmentHTMLFromJSON(data)
+  : buildHTMLFromJSON(data);
 
-      const data = await res.json();
-      const finalHTML = buildHTMLFromJSON(data);
-      setHtml(finalHTML);
-    } finally {
-      setLoading(false);
-    }
+setHtml(finalHTML);
+
+} finally {
+  setLoading(false);
+}
   }
 
   /* ---------------------------------------------------
