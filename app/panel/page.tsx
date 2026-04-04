@@ -82,20 +82,23 @@ export default function Panel() {
   // -----------------------------
   // COPY ONLY SELECTED COMMENTS
   // -----------------------------
-  async function copyComments() {
-    const selected = Array.from(
-      document.querySelectorAll("input[data-ai='1']:checked")
-    ).map((cb: any) => cb.value as string);
+function copyComments() {
+  const selected = Array.from(
+    document.querySelectorAll("input[data-ai='1']:checked")
+  ).map((cb: any) => cb.value as string);
 
-    const text = selected.join("\n\n");
+  window.parent.postMessage(
+    {
+      type: "COPY_SELECTED_COMMENTS",
+      comments: selected
+    },
+    "*"
+  );
 
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyStatus("Copied. Paste into SpeedGrader comments.");
-    } catch {
-      setCopyStatus("Could not copy. Select and copy manually.");
-    }
-  }
+  setCopyStatus("Copied. Paste into SpeedGrader comments.");
+}
+
+
 
   // -----------------------------
   // STATUS HELPER
