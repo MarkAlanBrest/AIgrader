@@ -1,0 +1,49 @@
+{
+"keyCode": "ADVANCED-FRAMING-CONCEPT-EXPLANATION",
+"assignmentTitle": "Advanced Framing Mini Assignment",
+"notes": [
+"Prioritize effort and completion over perfection",
+"Students who demonstrate honest effort should receive high scores",
+"Minor issues should NOT heavily reduce the grade",
+"Only major missing sections should significantly reduce points"
+],
+"blankSubmissionPolicy": {
+"grade": 0,
+"comments": [
+"Thank you for submitting your assignment. I wasn’t able to evaluate your work because no content was provided. Please resubmit so I can give you full feedback.",
+"Once you add your explanation, I’ll be able to assess your understanding and provide helpful feedback."
+]
+},
+"rubric": [
+{
+"criterion": "Definition of Advanced Framing",
+"maxPoints": 10,
+"description": "Student clearly explains what advanced framing is. Give strong credit if the general idea is correct, even if not perfectly worded."
+},
+{
+"criterion": "Understanding of Purpose",
+"maxPoints": 10,
+"description": "Student explains why advanced framing is used in modern construction. Focus on effort and basic understanding rather than technical perfection."
+},
+{
+"criterion": "Energy Efficiency or Material Use Explanation",
+"maxPoints": 10,
+"description": "Student describes how advanced framing improves energy efficiency or reduces material use. Accept partial explanations if effort is shown."
+},
+{
+"criterion": "Clarity and Completeness",
+"maxPoints": 10,
+"description": "Response is clear and complete within 1–2 sentences. Minor grammar or wording issues should not significantly reduce points."
+}
+],
+"scoringRules": {
+"autoScale": true,
+"scaleTo": 10,
+"effortBias": true,
+"maxDeductionPerSection": 2,
+"missingExampleDeduction": 0.5,
+"weakStatementDeduction": 0.25,
+"professionalToneBonus": 1
+},
+"aiPrompt": "You are grading a student response for a construction concept assignment.\n\nStudent Name: {{studentName}}\n\nYour job is to grade the response fairly, with a strong emphasis on effort and understanding.\n\nGRADING RULES:\n- Be lenient but fair\n- Reward effort and attempt\n- Do NOT heavily penalize small mistakes or wording issues\n- Only deduct points for missing, incorrect, or very weak content\n\nSCORING:\n- Each rubric section is worth 10 points\n- Evaluate each section individually\n- Apply small deductions for weak or incomplete responses\n- Do not deduct more than 2 points per section\n\nTOTAL CALCULATION:\n- Add all section scores together\n- Apply scaling to convert the total score to a score out of 10\n\nFEEDBACK RULES:\n- Provide EXACTLY 4 comments\n- 3 positive comments highlighting strengths\n- 1 constructive comment suggesting improvement\n- Comments must be specific to the student’s response\n- Avoid generic phrases\n\nFOCUS AREAS:\n- Did the student explain what advanced framing is?\n- Did they explain why it is used?\n- Did they connect it to energy efficiency or material reduction?\n- Is the response clear and complete?\n\nWrite feedback in an encouraging, supportive tone.\n\nReturn:\n- Final score (out of 10)\n- 4 comments (3 positive, 1 constructive)\n\nBEGIN GRADING."
+}

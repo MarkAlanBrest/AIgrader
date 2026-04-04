@@ -1,102 +1,64 @@
-<div id="ai-keycode" style="display: none;">EMPLOYER-EXPECTATIONS-ATTENDANCE-PUNCTUALITY</div>
 {
-  "title": "Advanced Framing Mini Assignment",
-  "description": "Time to review a key concept. In 1–2 sentences, explain your understanding of advanced framing and why it is used in modern construction.",
-  "type": "short_answer",
-  "questions": [
-    {
-      "id": "Q1",
-      "question": "What is advanced framing, and how does it improve energy efficiency or reduce material use compared to traditional framing?",
-      "type": "short_answer",
-      "points": 10
-    }
+  "keyCode": "EMPLOYER-EXPECTATIONS-ATTENDANCE-PUNCTUALITY",
+  "assignmentTitle": "Employer Expectations Assignment",
+
+  "notes": [
+    "Prioritize effort and completion over perfection.",
+    "Students who demonstrate honest effort should receive high scores.",
+    "Minor issues should NOT heavily reduce the grade.",
+    "Only major missing sections should significantly reduce points."
   ],
-  "answer_key": {
-    "Q1": {
-      "sample_response": "Advanced framing is a construction method that uses less lumber and places framing members more efficiently, such as wider stud spacing and aligned framing. It improves energy efficiency by creating more space for insulation and reduces material use by eliminating unnecessary wood."
-    }
+
+  "blankSubmissionPolicy": {
+    "grade": 0,
+    "comments": [
+      "Thank you for submitting your assignment. I wasn’t able to evaluate your work because no content was provided. Please resubmit so I can give you full feedback.",
+      "Once you add your examples and statements, I’ll be able to assess your strengths and provide detailed comments."
+    ]
   },
+
   "rubric": [
     {
-      "criteria": "Understanding of advanced framing",
-      "levels": [
-        {
-          "label": "Excellent",
-          "description": "Clearly explains that advanced framing is a building method that uses framing materials more efficiently and accurately describes its purpose in modern construction.",
-          "points": 4
-        },
-        {
-          "label": "Proficient",
-          "description": "Explains advanced framing correctly but with limited detail or minor omissions.",
-          "points": 3
-        },
-        {
-          "label": "Developing",
-          "description": "Shows partial understanding but gives an incomplete or somewhat unclear explanation.",
-          "points": 2
-        },
-        {
-          "label": "Needs Improvement",
-          "description": "Provides little to no accurate understanding of advanced framing.",
-          "points": 1
-        }
-      ]
+      "criterion": "Attendance Examples",
+      "maxPoints": 10,
+      "description": "3 examples expected. Give strong credit if effort is shown even if not perfect."
     },
     {
-      "criteria": "Explanation of energy efficiency or material reduction",
-      "levels": [
-        {
-          "label": "Excellent",
-          "description": "Clearly explains how advanced framing improves energy efficiency, reduces material use, or does both, with accurate reasoning.",
-          "points": 4
-        },
-        {
-          "label": "Proficient",
-          "description": "Correctly explains one benefit, such as better insulation space or less lumber use, but lacks full detail.",
-          "points": 3
-        },
-        {
-          "label": "Developing",
-          "description": "Mentions a benefit but the explanation is vague, weak, or only partly correct.",
-          "points": 2
-        },
-        {
-          "label": "Needs Improvement",
-          "description": "Does not clearly explain how advanced framing improves efficiency or reduces materials.",
-          "points": 1
-        }
-      ]
+      "criterion": "Attendance Statement",
+      "maxPoints": 10,
+      "description": "Statement should be clear. Minor grammar issues should NOT reduce score much."
     },
     {
-      "criteria": "Clarity and completeness",
-      "levels": [
-        {
-          "label": "Excellent",
-          "description": "Response is clear, complete, and stays within 1–2 well-written sentences.",
-          "points": 2
-        },
-        {
-          "label": "Proficient",
-          "description": "Response is mostly clear and complete with only minor wording or organization issues.",
-          "points": 1.5
-        },
-        {
-          "label": "Developing",
-          "description": "Response is somewhat unclear, too brief, or missing an important part of the explanation.",
-          "points": 1
-        },
-        {
-          "label": "Needs Improvement",
-          "description": "Response is unclear, incomplete, or does not answer the question effectively.",
-          "points": 0.5
-        }
-      ]
+      "criterion": "Punctuality Examples",
+      "maxPoints": 10,
+      "description": "3 examples expected. If student gives effort and explanation, award high points."
+    },
+    {
+      "criterion": "Punctuality Statement",
+      "maxPoints": 10,
+      "description": "Professional tone preferred, but effort should earn high credit."
+    },
+    {
+      "criterion": "Reliability Examples",
+      "maxPoints": 10,
+      "description": "Examples should show follow-through. Effort earns most of the points."
+    },
+    {
+      "criterion": "Reliability Statement",
+      "maxPoints": 10,
+      "description": "Strong statement preferred, but do not over-penalize small issues."
     }
   ],
-  "feedback": {
-    "excellent": "Excellent work. You clearly explained what advanced framing is and accurately described how it can improve energy efficiency and reduce material use. Your response was complete, clear, and showed strong understanding.",
-    "proficient": "Good job. You showed a solid understanding of advanced framing and included at least one important benefit. To improve, add a little more detail about how the method saves materials or allows for better insulation.",
-    "developing": "You are on the right track, but your response needs more detail or accuracy. Try to explain both what advanced framing is and how it helps with energy efficiency or reducing lumber use.",
-    "needs_improvement": "Your response needs more development. Review the idea that advanced framing uses materials more efficiently and can create more room for insulation. Then rewrite your answer in 1–2 clear sentences."
-  }
+
+  "scoringRules": {
+    "autoScale": true,
+    "scaleTo": 10,
+    "effortBias": true,
+    "maxDeductionPerSection": 2,
+    "missingExampleDeduction": 0.5,
+    "weakStatementDeduction": 0.25,
+    "professionalToneBonus": 1
+  },
+
+  "aiPrompt": "You are an employment readiness grader. The student's name is {{studentName}}.\n\nGRADING STYLE:\n- Students who make an honest effort should receive a high grade (8–10 range).\n- Do NOT be overly strict.\n- Minor mistakes should NOT significantly reduce the grade.\n- Only reduce points for missing sections or very weak effort.\n\nYOU MUST:\n- Score each rubric category out of 10.\n- Total the points (max 60).\n- SCALE the final score to a 10-point assignment.\n- Most completed submissions should land between 8–10.\n\nCOMMENTS:\n- Write EXACTLY 4 comments\n- 3 positive comments\n- 1 light constructive suggestion\n\nRULES:\n- Use the student’s name\n- Reference their actual work\n- Be encouraging and realistic\n- Do NOT be overly critical\n- Do NOT give generic feedback\n"
 }
