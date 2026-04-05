@@ -36,9 +36,10 @@ const student = body?.student || {};
     let finalRubric: any = null;
 
     // ✅ USE PASSED JSON FIRST
-    if (rubric) {
-      finalRubric = rubric;
-    }
+if (typeof rubric === "object") {
+  finalRubric = rubric;
+}
+
 
     // (keeps your structure intact if you ever go back)
     if (!finalRubric) {
