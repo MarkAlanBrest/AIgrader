@@ -9,6 +9,9 @@ export async function POST(req: Request) {
     // ✅ ADD rubric (keep everything else)
 
 const body = await req.json();
+
+console.log("REQUEST BODY:", body);
+
 const submission = body?.submission || "";
 const directions = body?.directions || "";
 const rubric = body?.rubric || {};
@@ -133,7 +136,7 @@ if (typeof rubric === "object") {
 
       const aiData = await aiRes.json();
       const raw = aiData?.choices?.[0]?.message?.content || "{}";
-
+console.log("RAW AI RESPONSE:", raw);
       parsed = JSON.parse(raw);
     } catch {
       parsed = {
