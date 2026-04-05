@@ -107,12 +107,11 @@ export async function POST(req: Request) {
           temperature: 0,
           response_format: { type: "json_object" },
           messages: [
-            {
-              role: "system",
-              
-              content:
-  "Strict grading engine. Follow rubric exactly. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be at least one full sentence."
-            },
+{
+  role: "system",
+  content:
+    "Strict grading engine. Follow rubric exactly. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be 3 to 4 full sentences. No short responses."
+},
             {
               role: "user",
               content: fullPrompt
