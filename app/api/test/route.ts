@@ -29,18 +29,15 @@ export async function POST(req: Request) {
     // -----------------------------
     let rubric: any = null;
 
-    if (keyCode) {
-      const filePath = path.join(
-        process.cwd(),
-        "public",
-        "keys",
-        `${keyCode}.json`
-      );
 
-      if (fs.existsSync(filePath)) {
-        rubric = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-      }
-    }
+
+if (!rubric) {
+  rubric = {}; // allow grading with no rubric
+}
+
+
+
+
 
     if (!rubric) {
       return Response.json({
