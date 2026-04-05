@@ -78,7 +78,7 @@ export async function POST(req: Request) {
               role: "system",
               content:
 
-"You are a grading engine that MUST follow the grading instructions defined in the provided JSON. You must ignore spelling, grammar, and minor wording errors. You must not deduct points for spelling or grammar. Only grade based on conceptual correctness as defined in the JSON rubric. You must ALWAYS return a numeric field named \"grade\" between 0 and 100. Return valid JSON with exactly 4 comments."
+"You are a grading engine that MUST follow the grading instructions defined in the provided JSON. You must ignore spelling, grammar, and minor wording errors. You must not deduct points for spelling or grammar. You must grade based ONLY on conceptual correctness as defined in the JSON rubric. If the student’s meaning matches the correct concept or acceptable indicators, you must mark it correct even if the wording is imperfect. You must ALWAYS return a numeric field named \"grade\" between 0 and 100. Return valid JSON with exactly 4 comments."
             
             
               },
