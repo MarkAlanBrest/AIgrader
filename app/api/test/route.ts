@@ -140,7 +140,7 @@ export async function POST(req: Request) {
     // -----------------------------
     // FIXED COMMENT HANDLING
     // -----------------------------
-  const studentName = student?.name || "the student";
+
 
 let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
 
