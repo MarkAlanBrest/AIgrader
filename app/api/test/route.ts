@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     }
 
     const fullPrompt =
-"Use this rubric as a guideline for grading:\n\n"
+"Grading configuration (THIS DEFINES ALL GRADING RULES — FOLLOW EXACTLY):\n\n"
       rubricWithName +
       "\n\nInstructions:\n" +
       aiPrompt +
@@ -102,22 +102,23 @@ export async function POST(req: Request) {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0,
-          response_format: { type: "json_object" },
-          messages: [
-{
-  role: "system",
-  content:
-"Intelligent grading engine. Grade based on meaning and intent, not exact wording. Be flexible with spelling, phrasing, and minor mistakes. Use the rubric as a guide, not strict matching. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be 3 to 4 full sentences."},
-            {
-              role: "user",
-              content: fullPrompt
-            }
-          ]
-        })
-      });
+  body: JSON.stringify({
+    model: "gpt-4o-mini",
+    temperature: 0, 
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a grading engine that MUST follow the grading instructions defined in the provided JSON. The JSON completely defines how grading is performed. You must not override, ignore, or reinterpret the grading method. Always follow the aiPrompt and grading rules exactly as written. Return valid JSON with exactly 4 comments."
+      },
+      {
+        role: "user",
+        content: fullPrompt
+      }
+    ]
+  })
+});
 
       const aiData = await aiRes.json();
       const raw = aiData?.choices?.[0]?.message?.content || "{}";
