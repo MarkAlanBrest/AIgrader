@@ -7,7 +7,12 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     // ✅ ADD rubric (keep everything else)
-    const { submission, directions, keyCode, rubric, student } = await req.json();
+
+const body = await req.json();
+const submission = body?.submission || "";
+const directions = body?.directions || "";
+const rubric = body?.rubric || {};
+const student = body?.student || {};    
     const apiKey = process.env.OPENAI_API_KEY;
 
     // -----------------------------
