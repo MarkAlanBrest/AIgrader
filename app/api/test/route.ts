@@ -166,7 +166,7 @@ comments = comments.map((c, i) => {
 });
 
 return Response.json({
-  grade: parsed.grade ?? 0,
+grade: parsed.grade ?? parsed.score ?? 0,
   comments
 });
 
