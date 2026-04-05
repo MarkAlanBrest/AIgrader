@@ -74,7 +74,7 @@ if (!rubric) {
     // -----------------------------
     const studentName = student?.name || "the student";
 
-    let aiPrompt = rubric.aiPrompt || "";
+    let aiPrompt = directions || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
 const rubricWithName = JSON.stringify(rubric, null, 2).replace(/{{studentName}}/g, studentName);
