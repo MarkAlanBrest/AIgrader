@@ -173,12 +173,19 @@ comments = comments.map((c, i) => {
     }
   }
 
-  // ALSO force name into AI-generated comments if missing
-  if (!c.toLowerCase().includes(studentName.toLowerCase())) {
-    return `${studentName}, ${c}`;
-  }
+  let clean = c.trim();
 
-  return c;
+  // convert robotic phrasing → direct feedback
+  clean = clean.replace(/^The student\s+/i, "you ");
+  clean = clean.replace(/^Student\s+/i, "you ");
+  clean = clean.replace(/^They\s+/i, "you ");
+  clean = clean.replace(/^Their\s+/i, "your ");
+  clean = clean.replace(/^The student’s\s+/i, "your ");
+
+  // lowercase first letter for flow
+  clean = clean.charAt(0).toLowerCase() + clean.slice(1);
+
+  return `${studentName}, ${clean}`;
 });
 
 
