@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     }
 
     const fullPrompt =
-      "Use this rubric exactly:\n\n" +
+"Use this rubric as a guideline for grading:\n\n"
       rubricWithName +
       "\n\nInstructions:\n" +
       aiPrompt +
@@ -110,8 +110,7 @@ export async function POST(req: Request) {
 {
   role: "system",
   content:
-    "Strict grading engine. Follow rubric exactly. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be 3 to 4 full sentences. No short responses."
-},
+"Intelligent grading engine. Grade based on meaning and intent, not exact wording. Be flexible with spelling, phrasing, and minor mistakes. Use the rubric as a guide, not strict matching. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be 3 to 4 full sentences."},
             {
               role: "user",
               content: fullPrompt
