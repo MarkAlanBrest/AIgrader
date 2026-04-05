@@ -161,16 +161,27 @@ comments = comments.map(c =>
 
     comments = comments.slice(0, 4);
 
-    comments = comments.map((c, i) => {
-      if (!c || c.trim().length < 10) {
-        if (i < 3) {
-          return "The student demonstrated a solid understanding of the material and correctly answered most of the questions.";
-        } else {
-          return "Points were lost because one or more answers were incorrect or missing and did not meet the required criteria.";
-        }
-      }
-      return c;
-    });
+
+
+
+comments = comments.map((c, i) => {
+  if (!c || c.trim().length < 10) {
+    if (i < 3) {
+      return `${studentName}, you demonstrated a solid understanding of the material and correctly answered most of the questions.`;
+    } else {
+      return `${studentName}, points were lost because one or more answers were incorrect or missing and did not meet the required criteria.`;
+    }
+  }
+
+  // ALSO force name into AI-generated comments if missing
+  if (!c.toLowerCase().includes(studentName.toLowerCase())) {
+    return `${studentName}, ${c}`;
+  }
+
+  return c;
+});
+
+
 
     return Response.json({
       grade,
