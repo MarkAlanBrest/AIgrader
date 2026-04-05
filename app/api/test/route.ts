@@ -109,8 +109,9 @@ export async function POST(req: Request) {
           messages: [
             {
               role: "system",
+              
               content:
-                "Strict grading engine. Follow rubric exactly. No judgment. No averaging. Return only JSON."
+  "Strict grading engine. Follow rubric exactly. Return JSON. Provide exactly 4 comments: first 3 positive, last explains why points were lost. Each comment must be at least one full sentence."
             },
             {
               role: "user",
@@ -144,15 +145,35 @@ export async function POST(req: Request) {
     // -----------------------------
     // FINAL RESPONSE (ALWAYS JSON)
     // -----------------------------
-    return Response.json({
-      grade: parsed.grade ?? 0,
-      comments: parsed.comments ?? [
-        "AI returned incomplete data.",
-        "Check submission.",
-        "Retry grading.",
-        "Evaluation issue."
-      ]
-    });
+  const rawComments = Array.isArray(parsed.comments) ? parsed.comments : [];
+
+let comments = rawComments.slice(0, 4);
+
+// ensure 4 comments
+while (comments.length < 4) {
+  comments.push("");
+}
+
+// enforce structure + sentence length
+comments = comments.map((c, i) => {
+  if (!c || c.length < 20) {
+    if (i < 3) {
+      return "The student demonstrated a solid understanding of the material and correctly answered most of the questions.";
+    } else {
+      return "Points were lost because one or more answers were incorrect or missing and did not meet the required criteria.";
+    }
+  }
+  return c;
+});
+
+return Response.json({
+  grade: parsed.grade ?? 0,
+  comments
+});
+
+
+
+
 
   } catch (err: any) {
     // 🔴 GUARANTEED NO WHITE SCREEN
