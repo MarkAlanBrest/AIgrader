@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { submission, directions, keyCode, student } = await req.json();
+    // ✅ ADD rubric (keep everything else)
+    const { submission, directions, keyCode, rubric, student } = await req.json();
     const apiKey = process.env.OPENAI_API_KEY;
 
     // -----------------------------
@@ -25,21 +26,21 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // LOAD RUBRIC FILE
+    // LOAD RUBRIC FILE (UNCHANGED STYLE)
     // -----------------------------
-    let rubric: any = null;
+    let finalRubric: any = null;
 
+    // ✅ USE PASSED JSON FIRST
+    if (rubric) {
+      finalRubric = rubric;
+    }
 
+    // (keeps your structure intact if you ever go back)
+    if (!finalRubric) {
+      finalRubric = {}; // allow grading with no rubric
+    }
 
-if (!rubric) {
-  rubric = {}; // allow grading with no rubric
-}
-
-
-
-
-
-    if (!rubric) {
+    if (!finalRubric) {
       return Response.json({
         grade: 0,
         comments: [
@@ -55,7 +56,7 @@ if (!rubric) {
     // BLANK SUBMISSION CHECK
     // -----------------------------
     if (!submission || !submission.trim()) {
-      const blank = rubric.blankSubmissionPolicy;
+      const blank = finalRubric.blankSubmissionPolicy;
 
       return Response.json({
         grade: blank?.grade ?? 0,
@@ -74,23 +75,21 @@ if (!rubric) {
     // -----------------------------
     const studentName = student?.name || "the student";
 
-    let aiPrompt = directions || "";
+    // ✅ FORCE JSON aiPrompt FIRST
+    let aiPrompt = finalRubric?.aiPrompt || directions || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
 
-const rubricWithName = JSON.stringify(rubric, null, 2).replace(/{{studentName}}/g, studentName);
+    // ✅ USE finalRubric instead of empty rubric
+    const rubricWithName = JSON.stringify(finalRubric, null, 2).replace(/{{studentName}}/g, studentName);
 
-const fullPrompt = `
-RUBRIC JSON:
-${rubricWithName}
-
-
-
-INSTRUCTIONS:
-${aiPrompt}
-
-STUDENT SUBMISSION:
-${submission}
-`;
+    // ✅ SAFER PROMPT (no drift)
+    const fullPrompt =
+      "Use this rubric exactly:\n\n" +
+      rubricWithName +
+      "\n\nInstructions:\n" +
+      aiPrompt +
+      "\n\nStudent Submission:\n" +
+      submission;
 
     // -----------------------------
     // OPENAI CALL (FIXED)
@@ -114,34 +113,9 @@ ${submission}
               {
                 role: "system",
 
-
-               content: `
-               
-You are a professional teacher grading student work.
-
-Return ONLY JSON:
-{
-  "grade": number,
-  "comments": [string, string, string, string]
-}
-
-
-
-
-Follow the scoring rules and instructions provided in the user message.
-Do not add enthusiasm.
-Do not inflate grades.
-Do not add extra commentary.
-Return ONLY the JSON:
-{
-  "grade": number,
-  "comments": [string, string, string, string]
-}
-
-`
-
-          
-                },
+                // ✅ FIXED (no red errors, strict)
+                content: "Strict grading engine. Follow rubric exactly. No judgment. No averaging. Use only rules provided. Return ONLY JSON with grade and comments."
+              },
               {
                 role: "user",
                 content: fullPrompt
