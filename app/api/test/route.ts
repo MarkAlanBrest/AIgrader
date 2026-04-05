@@ -36,25 +36,7 @@ export async function POST(req: Request) {
     }
 
     let finalRubric: any = rubric || {};
-
- const cleanSubmission = String(submission || "").trim();
-
-if (cleanSubmission.length === 0) {
-
-      const blank = finalRubric.blankSubmissionPolicy;
-
-      return Response.json({
-        grade: blank?.grade ?? 0,
-        comments:
-          blank?.comments ?? [
-            "No submission detected.",
-            "Please resubmit your work.",
-            "Unable to evaluate.",
-            "Points lost due to missing content."
-          ]
-      });
-    }
-
+    const cleanSubmission = String(submission || "").trim();
     const studentName = student?.name || "the student";
 
     let aiPrompt = finalRubric?.aiPrompt || directions || "";
@@ -95,7 +77,7 @@ if (cleanSubmission.length === 0) {
             {
               role: "system",
               content:
-                "You are a grading engine that MUST follow the grading instructions defined in the provided JSON. The JSON completely defines how grading is performed. You must not override, ignore, or reinterpret the grading method. Always follow the aiPrompt and grading rules exactly as written. Return valid JSON with exactly 4 comments."
+                "You are a grading engine that MUST follow the grading instructions defined in the provided JSON. You must ALWAYS return a numeric field named \"grade\" between 0 and 100. Never return numberCorrect, score, or any other scoring field. Return valid JSON with exactly 4 comments."
             },
             {
               role: "user",
@@ -129,12 +111,7 @@ if (cleanSubmission.length === 0) {
     // -----------------------------
     // FIXED GRADE LOGIC
     // -----------------------------
-    let grade = parsed.grade ?? parsed.score;
-
-    if (grade === undefined && parsed.numberCorrect !== undefined) {
-      const total = finalRubric?.questions?.length || 1;
-      grade = (parsed.numberCorrect / total) * 100;
-    }
+    let grade = parsed.grade; // score + numberCorrect removed
 
     if (grade === undefined) {
       grade = 0;
@@ -143,55 +120,55 @@ if (cleanSubmission.length === 0) {
     // -----------------------------
     // FIXED COMMENT HANDLING
     // -----------------------------
+    let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
 
+    comments = comments.map(c =>
+      typeof c === "string"
+        ? c.replace(/{{studentName}}/g, studentName)
+        : c
+    );
 
-let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
-
-// inject name into AI comments
-comments = comments.map(c =>
-  typeof c === "string"
-    ? c.replace(/{{studentName}}/g, studentName)
-    : c
-);
-
-
-
-
-    // ensure 4 comments
     while (comments.length < 4) {
       comments.push("");
     }
 
     comments = comments.slice(0, 4);
 
+    comments = comments.map((c, i) => {
+      if (!c || c.trim().length < 10) {
+        if (i < 3) {
+          return `${studentName}, you demonstrated a solid understanding of the material and correctly answered most of the questions.`;
+        } else {
+          return `${studentName}, points were lost because one or more answers were incorrect or missing and did not meet the required criteria.`;
+        }
+      }
 
+      let clean = c.trim();
 
+      clean = clean.replace(/^The student\s+/i, "you ");
+      clean = clean.replace(/^Student\s+/i, "you ");
+      clean = clean.replace(/^They\s+/i, "you ");
+      clean = clean.replace(/^Their\s+/i, "your ");
+      clean = clean.replace(/^The student’s\s+/i, "your ");
 
-comments = comments.map((c, i) => {
-  if (!c || c.trim().length < 10) {
-    if (i < 3) {
-      return `${studentName}, you demonstrated a solid understanding of the material and correctly answered most of the questions.`;
-    } else {
-      return `${studentName}, points were lost because one or more answers were incorrect or missing and did not meet the required criteria.`;
+      clean = clean.charAt(0).toLowerCase() + clean.slice(1);
+
+      return `${studentName}, ${clean}`;
+    });
+
+    // -----------------------------
+    // BLANK SUBMISSION OVERRIDE
+    // -----------------------------
+    if (cleanSubmission.length === 0) {
+      const blank = finalRubric.blankSubmissionPolicy;
+      grade = blank?.grade ?? 0;
+      comments = blank?.comments ?? [
+        "No submission detected.",
+        "Please resubmit your work.",
+        "Unable to evaluate.",
+        "Points lost due to missing content."
+      ];
     }
-  }
-
-  let clean = c.trim();
-
-  // convert robotic phrasing → direct feedback
-  clean = clean.replace(/^The student\s+/i, "you ");
-  clean = clean.replace(/^Student\s+/i, "you ");
-  clean = clean.replace(/^They\s+/i, "you ");
-  clean = clean.replace(/^Their\s+/i, "your ");
-  clean = clean.replace(/^The student’s\s+/i, "your ");
-
-  // lowercase first letter for flow
-  clean = clean.charAt(0).toLowerCase() + clean.slice(1);
-
-  return `${studentName}, ${clean}`;
-});
-
-
 
     return Response.json({
       grade,
