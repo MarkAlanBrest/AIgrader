@@ -140,7 +140,19 @@ export async function POST(req: Request) {
     // -----------------------------
     // FIXED COMMENT HANDLING
     // -----------------------------
-    let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
+  const studentName = student?.name || "the student";
+
+let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
+
+// inject name into AI comments
+comments = comments.map(c =>
+  typeof c === "string"
+    ? c.replace(/{{studentName}}/g, studentName)
+    : c
+);
+
+
+
 
     // ensure 4 comments
     while (comments.length < 4) {
