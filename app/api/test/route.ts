@@ -37,7 +37,13 @@ export async function POST(req: Request) {
 
     let finalRubric: any = rubric || {};
 
-    if (!submission.trim()) {
+   const cleanSubmission = submission
+  .replace(/<[^>]*>/g, "")   // strip HTML
+  .replace(/&nbsp;/g, " ")
+  .trim();
+
+if (!cleanSubmission) {
+
       const blank = finalRubric.blankSubmissionPolicy;
 
       return Response.json({
