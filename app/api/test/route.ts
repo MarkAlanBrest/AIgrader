@@ -124,13 +124,18 @@ Return ONLY JSON:
   "comments": [string, string, string, string]
 }
 
-RULES:
-- Write detailed, human-sounding feedback
-- Use the student's name (${studentName})
-- Reference the student's actual work
-- 3 positive comments + 1 constructive comment
-- Do NOT be generic
+Follow the scoring rules and instructions provided in the user message.
+Do not add enthusiasm.
+Do not inflate grades.
+Do not add extra commentary.
+Return ONLY the JSON:
+{
+  "grade": number,
+  "comments": [string, string, string, string]
+}
+
 `
+
           
                 },
               {
