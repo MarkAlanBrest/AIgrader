@@ -182,6 +182,21 @@ function copyComments() {
       )}
 
       {/* COMMENTS + COPY BUTTON (REPLACES SUBMIT BUTTON) */}
+
+      {/* Suggested Score */}
+{grade !== null && (
+  <div
+    style={{
+      marginBottom: 8,
+      fontWeight: 600,
+      fontSize: 16,
+      color: "#1e3a8a"
+    }}
+  >
+    Suggested Score: {grade}
+  </div>
+)}
+
       {comments.length > 0 && (
         <div
           style={{
