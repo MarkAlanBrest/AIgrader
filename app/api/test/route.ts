@@ -1,6 +1,3 @@
-import fs from "fs";
-import path from "path";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -16,18 +13,7 @@ export async function POST(req: Request) {
 
     console.log("REQUEST BODY:", body);
 
-    // -----------------------------
-    // GET SUBMISSION + FILE LINK
-    // -----------------------------
-    let submission = body?.submission || "";
-
-    let fileLink = "";
-
-    if (submission.includes("[FILE LINK]")) {
-      const parts = submission.split("[FILE LINK]");
-      fileLink = parts[1]?.trim() || "";
-    }
-
+    const submission = body?.submission || "";
     const directions = body?.directions || "";
     const rubric = typeof body?.rubric === "object" ? body.rubric : {};
     const student = body?.student || {};
@@ -47,33 +33,8 @@ export async function POST(req: Request) {
     }
 
     let finalRubric: any = rubric || {};
-    let cleanSubmission = String(submission || "").trim();
+    const cleanSubmission = String(submission || "").trim();
 
-    // -----------------------------
-    // DOWNLOAD FILE (IF EXISTS)
-    // -----------------------------
-    let fileBuffer: ArrayBuffer | null = null;
-
-    if (fileLink) {
-      try {
-        console.log("DOWNLOADING FILE:", fileLink);
-
-        const fileRes = await fetch(fileLink);
-
-        if (fileRes.ok) {
-          fileBuffer = await fileRes.arrayBuffer();
-          console.log("FILE DOWNLOADED");
-        } else {
-          console.log("FILE FAILED:", fileRes.status);
-        }
-      } catch (err) {
-        console.log("FILE ERROR:", err);
-      }
-    }
-
-    // -----------------------------
-    // STUDENT NAME CLEAN
-    // -----------------------------
     let studentName = student?.name || "the student";
     studentName = studentName.slice(2).split(" ")[0];
 
@@ -118,12 +79,7 @@ export async function POST(req: Request) {
             },
             {
               role: "user",
-              content: fileBuffer
-                ? [
-                    { type: "text", text: fullPrompt },
-                    { type: "input_file", file: fileBuffer }
-                  ]
-                : fullPrompt
+              content: fullPrompt
             }
           ]
         })
@@ -143,26 +99,19 @@ export async function POST(req: Request) {
         };
       }
 
-    } catch (err) {
-      console.log("AI ERROR:", err);
+    } catch {
       parsed = {
         grade: undefined,
-        comments: ["AI failed.", String(err), "", ""]
+        comments: ["AI failed.", "Retry grading.", "", ""]
       };
     }
 
-    // -----------------------------
-    // GRADE FIX
-    // -----------------------------
     let grade = parsed.grade;
 
     if (grade === undefined) {
       grade = 0;
     }
 
-    // -----------------------------
-    // COMMENTS FIX
-    // -----------------------------
     let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
 
     comments = comments.map(c =>
@@ -195,9 +144,6 @@ export async function POST(req: Request) {
       return `${studentName}, ${clean}`;
     });
 
-    // -----------------------------
-    // BLANK SUBMISSION
-    // -----------------------------
     if (cleanSubmission.length === 0) {
       const blank = finalRubric.blankSubmissionPolicy;
       grade = blank?.grade ?? 0;
