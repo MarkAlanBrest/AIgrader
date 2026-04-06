@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Employer Expectations Submission</title>
+</head>
+
+<body style="font-family:Arial; background:#f5f7fa; padding:20px;">
+
+<div style="max-width:900px;margin:auto;background:white;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+<h2>Employer Expectations Assignment</h2>
+
+<!-- ATTENDANCE -->
+<h3>Attendance</h3>
+<label>Attendance Example 1:</label><br>
+<textarea id="a1" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>Attendance Example 2:</label><br>
+<textarea id="a2" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>Attendance Example 3:</label><br>
+<textarea id="a3" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>My Attendance Statement:</label><br>
+<textarea id="attendanceStatement" style="width:100%;height:80px;"></textarea><br><br>
+
+<!-- PUNCTUALITY -->
+<h3>Punctuality</h3>
+<textarea id="p1" placeholder="Example 1" style="width:100%;height:60px;"></textarea><br><br>
+<textarea id="p2" placeholder="Example 2" style="width:100%;height:60px;"></textarea><br><br>
+<textarea id="p3" placeholder="Example 3" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>My Punctuality Statement:</label><br>
+<textarea id="punctualityStatement" style="width:100%;height:80px;"></textarea><br><br>
+
+<!-- RELIABILITY CHECKLIST -->
+<h3>Reliability (check all that apply)</h3>
+
+<div id="reliability">
+<label><input type="checkbox"> Honest day’s work</label><br>
+<label><input type="checkbox"> Learn new things</label><br>
+<label><input type="checkbox"> Get along with others</label><br>
+<label><input type="checkbox"> Leave problems at home</label><br>
+<label><input type="checkbox"> Follow directions</label><br>
+<label><input type="checkbox"> Keep workplace clean</label><br>
+<label><input type="checkbox"> Ask for help appropriately</label><br>
+<label><input type="checkbox"> Admit mistakes</label><br>
+<label><input type="checkbox"> Work until job is done</label><br>
+</div>
+
+<br>
+
+<label>Reliability Example 1:</label>
+<textarea id="r1" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>Reliability Example 2:</label>
+<textarea id="r2" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>Reliability Example 3:</label>
+<textarea id="r3" style="width:100%;height:60px;"></textarea><br><br>
+
+<label>My Reliability Statement:</label>
+<textarea id="rStatement" style="width:100%;height:80px;"></textarea><br><br>
+
+<!-- SKILLS -->
+<h3>Job Skills</h3>
+
+<label>Data:</label>
+<textarea id="data" style="width:100%;height:80px;"></textarea><br><br>
+
+<label>People:</label>
+<textarea id="people" style="width:100%;height:80px;"></textarea><br><br>
+
+<label>Things:</label>
+<textarea id="things" style="width:100%;height:80px;"></textarea><br><br>
+
+<label>Ideas:</label>
+<textarea id="ideas" style="width:100%;height:80px;"></textarea><br><br>
+
+<label>Final Interview Statement:</label>
+<textarea id="final" style="width:100%;height:100px;"></textarea><br><br>
+
+<!-- BUTTON -->
+<button onclick="generateFile()" style="padding:12px 25px;font-size:16px;background:#1e3a8a;color:white;border:none;border-radius:8px;">
+Generate Submission
+</button>
+
+<p id="status" style="color:green;margin-top:10px;"></p>
+
+</div>
+
+<script>
+function generateFile() {
+
+  const checks = Array.from(document.querySelectorAll('#reliability input:checked'))
+    .map(c => c.parentElement.innerText.trim())
+    .join(", ");
+
+  const content = `
+EMPLOYER EXPECTATIONS ASSIGNMENT
+
+--- ATTENDANCE ---
+Example 1: ${a1.value}
+Example 2: ${a2.value}
+Example 3: ${a3.value}
+
+Statement:
+${attendanceStatement.value}
+
+--- PUNCTUALITY ---
+Example 1: ${p1.value}
+Example 2: ${p2.value}
+Example 3: ${p3.value}
+
+Statement:
+${punctualityStatement.value}
+
+--- RELIABILITY ---
+Selected Traits: ${checks}
+
+Example 1: ${r1.value}
+Example 2: ${r2.value}
+Example 3: ${r3.value}
+
+Statement:
+${rStatement.value}
+
+--- SKILLS ---
+Data:
+${data.value}
+
+People:
+${people.value}
+
+Things:
+${things.value}
+
+Ideas:
+${ideas.value}
+
+--- FINAL INTERVIEW STATEMENT ---
+${final.value}
+`;
+
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+  link.download = "Employer_Expectations.txt";
+  link.click();
+
+  document.getElementById("status").innerText = "Download complete ✔️ Upload to Canvas.";
+}
+</script>
+
+</body>
+</html>
