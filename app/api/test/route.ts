@@ -37,7 +37,9 @@ export async function POST(req: Request) {
 
     let finalRubric: any = rubric || {};
     const cleanSubmission = String(submission || "").trim();
-    const studentName = student?.name || "the student";
+// Clean student name: drop first 2 chars, keep only first name
+let studentName = student?.name || "the student";
+studentName = studentName.slice(2).split(" ")[0];
 
     let aiPrompt = finalRubric?.aiPrompt || directions || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
               role: "system",
               content:
 
-"You are a grading engine that MUST follow the grading instructions defined in the provided JSON. You must ignore spelling, grammar, and minor wording errors. You must not deduct points for spelling or grammar. You must grade based ONLY on conceptual correctness as defined in the JSON rubric. If the student’s meaning matches the correct concept or acceptable indicators, you must mark it correct even if the wording is imperfect. You must ALWAYS return a numeric field named \"grade\" between 0 and 100. Return valid JSON with exactly 4 comments."
+"You must grade each question using rubric.questions."
             
             
               },
