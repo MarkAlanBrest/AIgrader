@@ -16,7 +16,18 @@ export async function POST(req: Request) {
 
     console.log("REQUEST BODY:", body);
 
-    const submission = body?.submission || "";
+    // -----------------------------
+    // GET SUBMISSION + FILE LINK
+    // -----------------------------
+    let submission = body?.submission || "";
+
+    let fileLink = "";
+
+    if (submission.includes("[FILE LINK]")) {
+      const parts = submission.split("[FILE LINK]");
+      fileLink = parts[1]?.trim() || "";
+    }
+
     const directions = body?.directions || "";
     const rubric = typeof body?.rubric === "object" ? body.rubric : {};
     const student = body?.student || {};
@@ -36,10 +47,35 @@ export async function POST(req: Request) {
     }
 
     let finalRubric: any = rubric || {};
-    const cleanSubmission = String(submission || "").trim();
-// Clean student name: drop first 2 chars, keep only first name
-let studentName = student?.name || "the student";
-studentName = studentName.slice(2).split(" ")[0];
+    let cleanSubmission = String(submission || "").trim();
+
+    // -----------------------------
+    // DOWNLOAD FILE (IF EXISTS)
+    // -----------------------------
+    let fileBuffer: ArrayBuffer | null = null;
+
+    if (fileLink) {
+      try {
+        console.log("DOWNLOADING FILE:", fileLink);
+
+        const fileRes = await fetch(fileLink);
+
+        if (fileRes.ok) {
+          fileBuffer = await fileRes.arrayBuffer();
+          console.log("FILE DOWNLOADED");
+        } else {
+          console.log("FILE FAILED:", fileRes.status);
+        }
+      } catch (err) {
+        console.log("FILE ERROR:", err);
+      }
+    }
+
+    // -----------------------------
+    // STUDENT NAME CLEAN
+    // -----------------------------
+    let studentName = student?.name || "the student";
+    studentName = studentName.slice(2).split(" ")[0];
 
     let aiPrompt = finalRubric?.aiPrompt || directions || "";
     aiPrompt = aiPrompt.replace(/{{studentName}}/g, studentName);
@@ -78,15 +114,16 @@ studentName = studentName.slice(2).split(" ")[0];
           messages: [
             {
               role: "system",
-              content:
-
-"You must grade each question using rubric.questions."
-            
-            
-              },
+              content: "You must grade each question using rubric.questions."
+            },
             {
               role: "user",
-              content: fullPrompt
+              content: fileBuffer
+                ? [
+                    { type: "text", text: fullPrompt },
+                    { type: "input_file", file: fileBuffer }
+                  ]
+                : fullPrompt
             }
           ]
         })
@@ -106,24 +143,25 @@ studentName = studentName.slice(2).split(" ")[0];
         };
       }
 
-    } catch {
+    } catch (err) {
+      console.log("AI ERROR:", err);
       parsed = {
         grade: undefined,
-        comments: ["AI failed.", "Retry grading.", "", ""]
+        comments: ["AI failed.", String(err), "", ""]
       };
     }
 
     // -----------------------------
-    // FIXED GRADE LOGIC
+    // GRADE FIX
     // -----------------------------
-    let grade = parsed.grade; // score + numberCorrect removed
+    let grade = parsed.grade;
 
     if (grade === undefined) {
       grade = 0;
     }
 
     // -----------------------------
-    // FIXED COMMENT HANDLING
+    // COMMENTS FIX
     // -----------------------------
     let comments = Array.isArray(parsed.comments) ? parsed.comments : [];
 
@@ -139,11 +177,10 @@ studentName = studentName.slice(2).split(" ")[0];
 
     comments = comments.slice(0, 4);
 
-    comments = comments.map((c, i) => {
- if (!c || typeof c !== "string") {
-  return `${studentName}, feedback unavailable.`;
-}
-
+    comments = comments.map((c) => {
+      if (!c || typeof c !== "string") {
+        return `${studentName}, feedback unavailable.`;
+      }
 
       let clean = c.trim();
 
@@ -159,7 +196,7 @@ studentName = studentName.slice(2).split(" ")[0];
     });
 
     // -----------------------------
-    // BLANK SUBMISSION OVERRIDE
+    // BLANK SUBMISSION
     // -----------------------------
     if (cleanSubmission.length === 0) {
       const blank = finalRubric.blankSubmissionPolicy;
