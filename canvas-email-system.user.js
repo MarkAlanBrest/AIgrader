@@ -289,12 +289,43 @@ Best regards,
     return results;
   }
 
+  function getCsrfToken() {
+    // Canvas stores the CSRF token in a cookie named '_csrf_token'
+    const match = document.cookie.match(/(?:^|;\s*)_csrf_token=([^;]+)/);
+    if (match) return decodeURIComponent(match[1]);
+    // Fallback: check meta tag
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.getAttribute("content");
+    return "";
+  }
+
   async function canvasPost(endpoint, body) {
+    const csrfToken = getCsrfToken();
+    // Canvas API accepts form-encoded data more reliably than JSON
+    const formData = new URLSearchParams();
+    function flattenToForm(obj, prefix) {
+      for (const [key, val] of Object.entries(obj)) {
+        const formKey = prefix ? `${prefix}[${key}]` : key;
+        if (Array.isArray(val)) {
+          val.forEach((item) => formData.append(formKey + "[]", String(item)));
+        } else if (typeof val === "object" && val !== null) {
+          flattenToForm(val, formKey);
+        } else {
+          formData.append(formKey, String(val));
+        }
+      }
+    }
+    flattenToForm(body, "");
+
     const resp = await fetch(API + endpoint, {
       method: "POST",
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRF-Token": csrfToken,
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: formData.toString(),
     });
     if (!resp.ok) {
       const text = await resp.text();
