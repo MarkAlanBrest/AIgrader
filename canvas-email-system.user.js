@@ -301,6 +301,7 @@ Best regards,
 
   async function canvasPost(endpoint, body) {
     const csrfToken = getCsrfToken();
+    console.log("[CES] POST", endpoint, "CSRF token found:", !!csrfToken);
     // Canvas API accepts form-encoded data more reliably than JSON
     const formData = new URLSearchParams();
     function flattenToForm(obj, prefix) {
@@ -308,6 +309,8 @@ Best regards,
         const formKey = prefix ? `${prefix}[${key}]` : key;
         if (Array.isArray(val)) {
           val.forEach((item) => formData.append(formKey + "[]", String(item)));
+        } else if (typeof val === "boolean") {
+          formData.append(formKey, val ? "1" : "0");
         } else if (typeof val === "object" && val !== null) {
           flattenToForm(val, formKey);
         } else {
@@ -316,6 +319,7 @@ Best regards,
       }
     }
     flattenToForm(body, "");
+    console.log("[CES] Form data:", formData.toString());
 
     const resp = await fetch(API + endpoint, {
       method: "POST",
@@ -327,11 +331,17 @@ Best regards,
       },
       body: formData.toString(),
     });
+    const responseText = await resp.text();
+    console.log("[CES] Response status:", resp.status, "body:", responseText.substring(0, 500));
     if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(`Canvas API error: ${resp.status} - ${text}`);
+      throw new Error(`Canvas API error: ${resp.status} - ${responseText}`);
     }
-    return resp.json();
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.log("[CES] Response is not JSON:", responseText.substring(0, 200));
+      return responseText;
+    }
   }
 
   /* =========================================================
@@ -537,22 +547,30 @@ Best regards,
      CANVAS ACTIONS
   ========================================================= */
   async function sendCanvasMessage(courseId, recipientId, subject, body) {
-    return canvasPost("/conversations", {
+    console.log("[CES] Sending message to user", recipientId, "in course", courseId);
+    const result = await canvasPost("/conversations", {
       recipients: [String(recipientId)],
       subject: subject,
       body: body,
+      force_new: true,
+      group_conversation: false,
       context_code: "course_" + courseId,
       mode: "sync",
     });
+    console.log("[CES] Send result:", JSON.stringify(result).substring(0, 300));
+    return result;
   }
 
   async function postAnnouncement(courseId, title, message) {
-    return canvasPost(`/courses/${courseId}/discussion_topics`, {
+    console.log("[CES] Posting announcement to course", courseId);
+    const result = await canvasPost(`/courses/${courseId}/discussion_topics`, {
       title: title,
       message: "<p>" + message.replace(/\n/g, "<br>") + "</p>",
       is_announcement: true,
       published: true,
     });
+    console.log("[CES] Announcement result:", JSON.stringify(result).substring(0, 300));
+    return result;
   }
 
   /* =========================================================
