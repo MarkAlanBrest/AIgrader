@@ -570,10 +570,15 @@ async function callAI(systemPrompt: string, userMessage: string, apiKey: string)
   });
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`API error: ${err}`);
+    throw new Error(`API error (${response.status}): ${err}`);
   }
   const data = await response.json();
-  return data.content?.[0]?.text || '';
+  const text = data.content?.[0]?.text || '';
+  if (!text) {
+    console.error('Empty AI response:', JSON.stringify(data));
+    throw new Error('AI returned an empty response. Please try again.');
+  }
+  return text;
 }
 
 // ─── Content Recommender AI Call ───
@@ -609,13 +614,21 @@ Generate 8-12 diverse recommendations covering different builder types. Include 
 
   const response = await callAI(systemPrompt, `Here is the educational content to analyze:\n\n${content}`, apiKey);
 
-  // Parse JSON from response
-  const jsonMatch = response.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('Failed to parse recommendations');
+  // Parse JSON from response - handle markdown code blocks and extra text
+  let cleaned = response.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
+  const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) {
+    console.error('AI response (could not parse):', response);
+    throw new Error('Failed to parse recommendations — the AI response did not contain valid JSON. Please try again.');
+  }
 
-  const recs = JSON.parse(jsonMatch[0]) as Array<{
-    title: string; type: string; category: string; description: string; builderPrompt: string;
-  }>;
+  let recs: Array<{ title: string; type: string; category: string; description: string; builderPrompt: string; }>;
+  try {
+    recs = JSON.parse(jsonMatch[0]);
+  } catch (parseErr) {
+    console.error('JSON parse error:', parseErr, 'Raw match:', jsonMatch[0]);
+    throw new Error('Failed to parse recommendations JSON. Please try again.');
+  }
 
   return recs.map((r, i) => ({
     id: `rec-${Date.now()}-${i}`,
@@ -654,9 +667,19 @@ Return ONLY valid JSON (single object, not array):
 }`;
 
   const response = await callAI(systemPrompt, `Content:\n\n${content}`, apiKey);
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Failed to parse recommendation');
-  const r = JSON.parse(jsonMatch[0]);
+  let cleaned = response.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    console.error('AI response (could not parse):', response);
+    throw new Error('Failed to parse recommendation. Please try again.');
+  }
+  let r;
+  try {
+    r = JSON.parse(jsonMatch[0]);
+  } catch (parseErr) {
+    console.error('JSON parse error:', parseErr);
+    throw new Error('Failed to parse recommendation JSON. Please try again.');
+  }
   return {
     id: `rec-${Date.now()}-new`,
     title: r.title,
