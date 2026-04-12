@@ -8,12 +8,13 @@ import {
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType } from 'docx';
 import PptxGenJS from 'pptxgenjs';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
 import { BUILDERS, CATEGORIES, BACKEND_URL, PIN } from './builderConfigs';
 import type { BuilderConfig, BuilderOption, Recommendation, RecommendationSet } from './types';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure PDF.js worker using bundled worker from npm package
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 // ─── Icon mapping ───
 const BUILDER_ICONS: Record<string, React.ReactNode> = {
