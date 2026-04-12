@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AIgrader — Claude Edition
 // @namespace    http://tampermonkey.net/
-// @version      5.1
+// @version      5.2
 // @description  Grade Canvas submissions using Claude AI directly in SpeedGrader — auto-detects course, pulls assignments from Canvas API
 // @match        https://*.instructure.com/*
 // @grant        GM_getValue
@@ -765,7 +765,7 @@
         if      (state.view === "setup")    content.appendChild(buildSetupView());
         else if (state.view === "grade")    content.appendChild(buildGradeView(db));
         else if (state.view === "results")  content.appendChild(buildResultsView());
-        else if (state.view === "manage")   content.appendChild(buildManageView(db));
+        else if (state.view === "help")     content.appendChild(buildHelpView());
         else if (state.view === "settings") content.appendChild(buildSettingsEditorView());
         panel.appendChild(content);
     }
@@ -788,7 +788,7 @@
         }, { textContent: "AI" }));
         const titleMap = {
             setup: "Setup",
-            manage: "Manage Rubrics",
+            help: "Help",
             results: "Grading Results",
             settings: "Assignment Settings",
             grade: "AI Grader",
@@ -800,12 +800,12 @@
 
         const right = div({ display: "flex", alignItems: "center", gap: "8px" });
         if (state.view !== "setup") {
-            const gradeTab  = navTab("Grade",   state.view === "grade",    () => { state.view = "grade";  render(); });
-            const manageTab = navTab("Rubrics", state.view === "manage",   () => { state.view = "manage"; render(); });
-            const setupTab  = navTab("⚙",       state.view === "setup",    () => { state.view = "setup";  render(); });
+            const gradeTab = navTab("Grade",  state.view === "grade",  () => { state.view = "grade"; render(); });
+            const helpTab  = navTab("Help",   state.view === "help",   () => { state.view = "help";  render(); });
+            const setupTab = navTab("⚙",      state.view === "setup",  () => { state.view = "setup"; render(); });
             setupTab.title = "API Key Settings";
             right.appendChild(gradeTab);
-            right.appendChild(manageTab);
+            right.appendChild(helpTab);
             right.appendChild(setupTab);
         }
         const closeX = el("button", {
@@ -1490,7 +1490,7 @@
             // Legacy: using saved rubric
             item = getItem(db, state.selectedClass, state.selectedAssignment);
             if (!item) {
-                setStatus("No rubric found. Add one in the Rubrics tab.", "error");
+                setStatus("No rubric found. Configure grading settings for this assignment.", "error");
                 render(); return;
             }
         } else {
@@ -1657,145 +1657,128 @@
     }
 
     // ─────────────────────────────────────────────
-    // MANAGE RUBRICS VIEW
+    // HELP VIEW
     // ─────────────────────────────────────────────
-    function buildManageView(db) {
-        const wrap = div({ display: "flex", flexDirection: "column", height: "100%" });
+    function buildHelpView() {
+        const wrap = div({ flex: "1", overflowY: "auto", padding: "14px", display: "flex", flexDirection: "column", gap: "14px" });
 
-        const filterBar = div({ padding: "12px 14px", background: "#fff", borderBottom: "1px solid #e5e7eb", flexShrink: "0" });
-        filterBar.appendChild(buildSelect(
-            getClasses(db), state.selectedClass, "All Classes",
-            value => { state.selectedClass = value; render(); }
-        ));
-        wrap.appendChild(filterBar);
+        // Header
+        wrap.appendChild(div({
+            padding: "14px", borderRadius: "10px", background: "#1e3a5f",
+            color: "#fff", textAlign: "center"
+        }, { innerHTML: `<div style="font-size:24px;margin-bottom:4px;">🎓</div><div style="font-weight:700;font-size:15px;">AI Grader — Help Guide</div><div style="font-size:12px;color:#93c5fd;margin-top:4px;">Grade student submissions with Claude AI</div>` }));
 
-        const listWrap = div({ flex: "1", overflowY: "auto", padding: "12px 14px" });
-        const items = getItemsForList(db, state.selectedClass);
-        if (!items.length) {
-            listWrap.appendChild(div({
-                padding: "24px 16px", textAlign: "center", color: "#9ca3af", fontSize: "13px"
-            }, { innerHTML: "No rubrics saved yet.<br>Click <strong>+ Add Rubric</strong> below to get started." }));
-        } else {
-            items.forEach(item => buildRubricCard(item, db, listWrap));
-        }
-        wrap.appendChild(listWrap);
+        // Quick Start
+        wrap.appendChild(buildHelpCard("🚀 Quick Start", `
+            <ol style="margin:0;padding-left:18px;">
+                <li><strong>Navigate to SpeedGrader</strong> — Open any assignment in Canvas SpeedGrader. The course and assignment will be auto-detected.</li>
+                <li><strong>Open the AI Grader</strong> — Click the AI Grader button in your Canvas Dashboard.</li>
+                <li><strong>Select the assignment</strong> — Choose the assignment from the dropdown (auto-populated from Canvas).</li>
+                <li><strong>Configure settings</strong> — Click "⚙ Grading Settings" to set up your rubric and preferences.</li>
+                <li><strong>Grade</strong> — Click "Grade with Claude" to get a suggested grade and feedback comments.</li>
+                <li><strong>Paste feedback</strong> — Select the comments you want and paste them into the Canvas comment box.</li>
+            </ol>
+        `));
 
-        const footer = div({ padding: "12px 14px", borderTop: "1px solid #e5e7eb", background: "#f8fafc", flexShrink: "0" });
-        const addBtn = btn("+ Add New Rubric", "#2563eb", "#fff", { width: "100%", boxSizing: "border-box" });
-        addBtn.onclick = () => {
-            const newItem = {
-                id: makeId(),
-                className: state.selectedClass || state.detectedCourseName || "New Class",
-                assignmentName: "New Assignment",
-                canvasAssignmentId: state.selectedAssignmentId || "",
-                jsonText: JSON.stringify({
-                    assignmentTitle: "Assignment Title",
-                    totalPoints: 100,
-                    aiInstructions: "Grade this assignment based on the rubric criteria below. Be specific in your feedback.",
-                    rubric: [
-                        { name: "Criterion 1", points: 50, description: "Describe what earns full points" },
-                        { name: "Criterion 2", points: 50, description: "Describe what earns full points" }
-                    ],
-                    commentBank: ["Great work overall!", "Please review the requirements and resubmit."],
-                    notes: ""
-                }, null, 2)
-            };
-            upsertItem(db, newItem);
-            saveDB(db);
-            render();
-        };
-        footer.appendChild(addBtn);
-        wrap.appendChild(footer);
+        // Setting Up Grading Criteria
+        wrap.appendChild(buildHelpCard("📋 Setting Up Grading Criteria", `
+            <p style="margin:0 0 8px;">Click <strong>"⚙ Grading Settings"</strong> after selecting an assignment. You can configure:</p>
+            <ul style="margin:0;padding-left:18px;">
+                <li><strong>Rubric / Grading Criteria</strong> — Enter your rubric as plain text. Be specific about what earns points.<br>
+                    <em style="color:#6b7280;">Example:<br>
+                    - Content & Understanding (40 pts): Demonstrates clear grasp of key concepts<br>
+                    - Organization (20 pts): Logical structure with clear intro, body, conclusion<br>
+                    - Grammar & Mechanics (20 pts): Proper spelling, grammar, punctuation<br>
+                    - Citations (20 pts): Proper APA/MLA format with at least 3 sources</em></li>
+                <li><strong>Answer Key</strong> — Provide correct answers so Claude can compare student responses.<br>
+                    <em style="color:#6b7280;">Example:<br>
+                    Q1: The Civil War began in 1861<br>
+                    Q2: Photosynthesis converts light energy into chemical energy</em></li>
+                <li><strong>Comment Suggestions</strong> — Pre-written comments Claude can use or adapt in feedback.</li>
+                <li><strong>Custom AI Instructions</strong> — Special instructions for the AI grader.<br>
+                    <em style="color:#6b7280;">Example: "This is an ESL class — be lenient with grammar. Focus on content understanding."</em></li>
+            </ul>
+        `));
+
+        // Grading Options
+        wrap.appendChild(buildHelpCard("⚖️ Grading Options", `
+            <ul style="margin:0;padding-left:18px;">
+                <li><strong>Grade Intensity</strong>
+                    <ul style="padding-left:14px;">
+                        <li><em>Lenient</em> — Generous, benefit of the doubt</li>
+                        <li><em>Balanced</em> — Fair and consistent (default)</li>
+                        <li><em>Strict</em> — Rigorous, high standards</li>
+                    </ul>
+                </li>
+                <li><strong>Feedback Tone</strong>
+                    <ul style="padding-left:14px;">
+                        <li><em>Encouraging</em> — Supportive, starts with positives (default)</li>
+                        <li><em>Neutral</em> — Professional and objective</li>
+                        <li><em>Direct</em> — Concise, focuses on improvements</li>
+                    </ul>
+                </li>
+                <li><strong>Accept Intent</strong> — Give credit when the student conveys the right meaning even with different wording.</li>
+                <li><strong>Partial Credit</strong> — Award partial points for partially correct answers.</li>
+                <li><strong>Focus Areas</strong> — Tell Claude to pay extra attention to specific aspects (e.g., "thesis clarity, use of evidence").</li>
+            </ul>
+        `));
+
+        // Settings Persistence
+        wrap.appendChild(buildHelpCard("💾 How Settings Are Saved", `
+            <ul style="margin:0;padding-left:18px;">
+                <li>Grading settings are <strong>saved by assignment name</strong>, not by Canvas ID.</li>
+                <li>When you copy a course in Canvas, the new course gets new IDs — but since settings are saved by name, they <strong>automatically carry over</strong> to the copied class.</li>
+                <li>If two different classes have an assignment with the same name, they will <strong>share the same grading settings</strong>. A warning banner will appear in the settings editor when this happens.</li>
+                <li>Settings are stored locally in your browser via Tampermonkey — they are <strong>not</strong> synced to Canvas or the cloud.</li>
+            </ul>
+        `));
+
+        // File Uploads
+        wrap.appendChild(buildHelpCard("📄 Uploading Student Work", `
+            <ul style="margin:0;padding-left:18px;">
+                <li>If a student submitted a file attachment (PDF, Word, Excel), click <strong>"Upload File"</strong> to load it.</li>
+                <li>Supported formats: <strong>PDF, DOCX, DOC, XLSX, XLS, TXT, CSV, JSON, MD</strong></li>
+                <li>Text is automatically extracted from PDFs and Word/Excel documents.</li>
+                <li>Max file size: <strong>20 MB</strong></li>
+                <li>If the submission text is detected on the page, it will be used automatically — no upload needed.</li>
+            </ul>
+        `));
+
+        // Tips
+        wrap.appendChild(buildHelpCard("💡 Tips & Best Practices", `
+            <ul style="margin:0;padding-left:18px;">
+                <li>The more specific your rubric, the better Claude's grading will be.</li>
+                <li>Use the <strong>Answer Key</strong> for objective assignments (quizzes, short answer) for most accurate grading.</li>
+                <li>Use <strong>Comment Suggestions</strong> to maintain your personal voice in feedback.</li>
+                <li>Always review Claude's suggested grade and comments before posting — AI is a helper, not a replacement.</li>
+                <li>Cost is approximately <strong>$0.006 per paper</strong> on Claude Sonnet — a $5 credit grades ~800 papers.</li>
+            </ul>
+        `));
+
+        // Troubleshooting
+        wrap.appendChild(buildHelpCard("🔧 Troubleshooting", `
+            <ul style="margin:0;padding-left:18px;">
+                <li><strong>"No submission detected"</strong> — The student may have submitted a file attachment. Use the Upload File button to load it manually.</li>
+                <li><strong>"No assignments found"</strong> — Make sure you're on a Canvas course page. Navigate to SpeedGrader for best results.</li>
+                <li><strong>API errors</strong> — Check that your Anthropic API key is valid and has credit. Go to ⚙ Settings to update it.</li>
+                <li><strong>PDF text extraction fails</strong> — The PDF may be scanned/image-only. Try copying text from the PDF manually.</li>
+            </ul>
+        `));
+
         return wrap;
     }
 
-    function buildRubricCard(item, db, container) {
+    function buildHelpCard(title, htmlContent) {
         const card = div({
             background: "#fff", border: "1px solid #e5e7eb", borderRadius: "10px",
-            padding: "12px", marginBottom: "10px", display: "flex",
-            flexDirection: "column", gap: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)"
+            padding: "14px", display: "flex", flexDirection: "column", gap: "6px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.05)"
         });
-
-        const metaRow = div({ display: "flex", gap: "8px" });
-        const classInput = el("input", {
-            flex: "1", padding: "8px", borderRadius: "6px",
-            border: "1px solid #d1d5db", fontSize: "13px", boxSizing: "border-box"
-        }, { value: item.className || "", placeholder: "Class name" });
-        const assignInput = el("input", {
-            flex: "1", padding: "8px", borderRadius: "6px",
-            border: "1px solid #d1d5db", fontSize: "13px", boxSizing: "border-box"
-        }, { value: item.assignmentName || "", placeholder: "Assignment name" });
-        metaRow.appendChild(classInput);
-        metaRow.appendChild(assignInput);
-        card.appendChild(metaRow);
-
-        const hint = div({ fontSize: "11px", color: "#9ca3af" }, { textContent: "Rubric JSON:" });
-        card.appendChild(hint);
-
-        const editor = el("textarea", {
-            width: "100%", minHeight: "140px", resize: "vertical",
-            padding: "10px", border: "1px solid #d1d5db", borderRadius: "8px",
-            fontFamily: "Consolas, monospace", fontSize: "11px",
-            background: "#f9fafb", color: "#1e293b", boxSizing: "border-box", lineHeight: "1.5"
-        }, { value: item.jsonText || "" });
-        editor.oninput = () => {
-            try {
-                JSON.parse(editor.value);
-                editor.style.borderColor = "#86efac";
-                hint.textContent = "Valid JSON";
-                hint.style.color = "#166534";
-            } catch (e) {
-                editor.style.borderColor = "#fca5a5";
-                hint.textContent = `${e.message.slice(0, 55)}`;
-                hint.style.color = "#b91c1c";
-            }
-        };
-        card.appendChild(editor);
-
-        const btnRow = div({ display: "flex", justifyContent: "flex-end", gap: "8px" });
-
-        const useBtn = btn("Use", "#2563eb");
-        useBtn.style.padding = "7px 14px";
-        useBtn.onclick = () => {
-            state.selectedClass = item.className;
-            state.selectedAssignment = item.assignmentName;
-            state.view = "grade";
-            setStatus(`Loaded: ${item.assignmentName}`, "success");
-            render();
-        };
-
-        const saveBtn = btn("Save", "#166534");
-        saveBtn.style.padding = "7px 14px";
-        saveBtn.onclick = () => {
-            const newClass  = norm(classInput.value);
-            const newAssign = norm(assignInput.value);
-            if (!newClass || !newAssign) { alert("Class and assignment name cannot be empty."); return; }
-            try { JSON.parse(editor.value || ""); } catch (e) { alert(`Fix the JSON:\n\n${e.message}`); return; }
-            item.className = newClass;
-            item.assignmentName = newAssign;
-            item.jsonText = editor.value;
-            upsertItem(db, item);
-            saveDB(db);
-            state.selectedClass = newClass;
-            state.selectedAssignment = newAssign;
-            setStatus("Rubric saved.", "success");
-            render();
-        };
-
-        const delBtn = btn("Delete", "#ef4444");
-        delBtn.style.padding = "7px 14px";
-        delBtn.onclick = () => {
-            if (!confirm(`Delete "${item.assignmentName}"?\nThis cannot be undone.`)) return;
-            deleteItem(db, item.id);
-            saveDB(db);
-            render();
-        };
-
-        btnRow.appendChild(useBtn);
-        btnRow.appendChild(saveBtn);
-        btnRow.appendChild(delBtn);
-        card.appendChild(btnRow);
-        container.appendChild(card);
+        card.appendChild(div({ fontSize: "14px", fontWeight: "700", color: "#111827" }, { textContent: title }));
+        const body = div({ fontSize: "12px", color: "#374151", lineHeight: "1.7" });
+        body.innerHTML = htmlContent.trim();
+        card.appendChild(body);
+        return card;
     }
 
     // ─────────────────────────────────────────────
