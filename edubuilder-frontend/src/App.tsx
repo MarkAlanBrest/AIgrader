@@ -88,8 +88,9 @@ function PinGate({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Settings Modal ───
-function SettingsModal({ show, onClose, apiKey, setApiKey }: {
+function SettingsModal({ show, onClose, apiKey, setApiKey, unsplashKey, setUnsplashKey }: {
   show: boolean; onClose: () => void; apiKey: string; setApiKey: (k: string) => void;
+  unsplashKey: string; setUnsplashKey: (k: string) => void;
 }) {
   if (!show) return null;
   return (
@@ -107,7 +108,15 @@ function SettingsModal({ show, onClose, apiKey, setApiKey }: {
           className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm mb-4 focus:outline-none focus:border-blue-500"
           placeholder="sk-ant-..."
         />
-        <p className="text-gray-500 text-xs">Your key is stored in this browser only.</p>
+        <label className="block text-gray-400 text-xs mb-1">Unsplash API Key <span className="text-gray-600">(for PowerPoint images)</span></label>
+        <input
+          type="password"
+          value={unsplashKey}
+          onChange={e => { setUnsplashKey(e.target.value); localStorage.setItem('edubuilder-unsplash-key', e.target.value); }}
+          className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm mb-4 focus:outline-none focus:border-blue-500"
+          placeholder="Access key from unsplash.com/developers"
+        />
+        <p className="text-gray-500 text-xs">Your keys are stored in this browser only.</p>
       </div>
     </div>
   );
@@ -475,13 +484,28 @@ function generateDocx(title: string, data: Record<string, unknown>): Document {
 }
 
 // ─── PPTX generation ───
-async function generatePptx(data: Record<string, unknown>, _opts: Record<string, string | number | boolean>): Promise<void> {
+async function fetchUnsplashImage(query: string, unsplashKey: string): Promise<string | null> {
+  if (!unsplashKey || !query) return null;
+  try {
+    const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`, {
+      headers: { Authorization: `Client-ID ${unsplashKey}` },
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.results?.[0]?.urls?.regular || null;
+  } catch {
+    return null;
+  }
+}
+
+async function generatePptx(data: Record<string, unknown>, _opts: Record<string, string | number | boolean>, unsplashKey?: string): Promise<void> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
 
   const slides = (data.slides || []) as Array<Record<string, unknown>>;
   const accentColors: Record<string, string> = { Blue: '2563EB', Teal: '0D9488', Purple: '7C3AED', Red: 'DC2626', Green: '16A34A' };
   const accent = accentColors[String(_opts['ppt-color'] || 'Blue')] || '2563EB';
+  const includeImages = _opts['ppt-images'] !== false;
 
   for (const slideData of slides) {
     const slide = pptx.addSlide();
@@ -524,6 +548,8 @@ async function generatePptx(data: Record<string, unknown>, _opts: Record<string,
       });
     } else {
       // Content slide
+      const hasImage = includeImages && unsplashKey && slideData.imageSearchTerm;
+      const bulletWidth = hasImage ? 7 : 11;
       slide.addText(String(slideData.title || ''), {
         x: 0.5, y: 0.3, w: 12, h: 0.8,
         fontSize: 24, color: accent, bold: true,
@@ -531,10 +557,16 @@ async function generatePptx(data: Record<string, unknown>, _opts: Record<string,
       const bullets = (slideData.bullets || []) as string[];
       bullets.forEach((b, i) => {
         slide.addText(b, {
-          x: 1, y: 1.3 + i * 0.55, w: 7, h: 0.5,
+          x: 1, y: 1.3 + i * 0.55, w: bulletWidth, h: 0.5,
           fontSize: 14, color: '333333',
         });
       });
+      if (hasImage) {
+        const imgUrl = await fetchUnsplashImage(String(slideData.imageSearchTerm), unsplashKey!);
+        if (imgUrl) {
+          slide.addImage({ path: imgUrl, x: 8.5, y: 1.3, w: 4, h: 3 });
+        }
+      }
       if (slideData.keyTakeaway) {
         slide.addText(`Key: ${slideData.keyTakeaway}`, {
           x: 0.5, y: 6.2, w: 12, h: 0.5,
@@ -821,6 +853,7 @@ function AppInner() {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('edubuilder-api-key') || '');
+  const [unsplashKey, setUnsplashKey] = useState(() => localStorage.getItem('edubuilder-unsplash-key') || '');
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; name: string; text: string }>>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -933,7 +966,7 @@ function AppInner() {
     if (activeBuilder === 'ppt') {
       const opts: Record<string, string | number | boolean> = {};
       builder.options.forEach(o => { if (o.key) opts[o.key] = getOptVal(o.key); });
-      await generatePptx(result, opts);
+      await generatePptx(result, opts, unsplashKey);
     } else {
       const title = String(result.title || topic || 'document');
       const doc = generateDocx(title, result);
@@ -1130,7 +1163,7 @@ function AppInner() {
         )}
       </main>
 
-      <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} apiKey={apiKey} setApiKey={setApiKey} />
+      <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} apiKey={apiKey} setApiKey={setApiKey} unsplashKey={unsplashKey} setUnsplashKey={setUnsplashKey} />
 
       <style>{`
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
