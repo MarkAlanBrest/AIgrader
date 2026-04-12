@@ -7,8 +7,13 @@ import {
 } from 'lucide-react';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType } from 'docx';
 import PptxGenJS from 'pptxgenjs';
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
 import { BUILDERS, CATEGORIES, BACKEND_URL, PIN } from './builderConfigs';
 import type { BuilderConfig, BuilderOption, Recommendation, RecommendationSet } from './types';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 // ─── Icon mapping ───
 const BUILDER_ICONS: Record<string, React.ReactNode> = {
@@ -217,14 +222,42 @@ function OptionRow({ opt, value, onChange }: {
 
 // ─── File upload helpers ───
 async function extractFileText(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
   try {
-    const res = await fetch(`${BACKEND_URL}/api/extract-text`, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Extraction failed');
-    const data = await res.json();
-    return data.text || '';
-  } catch {
+    // Plain text files
+    if (['txt', 'csv', 'rtf', 'md'].includes(ext)) {
+      return await file.text();
+    }
+
+    // PDF files - use pdf.js
+    if (ext === 'pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pages: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const strings = content.items
+          .filter(item => 'str' in item)
+          .map(item => (item as { str: string }).str);
+        pages.push(strings.join(' '));
+      }
+      return pages.join('\n\n');
+    }
+
+    // DOCX files - use mammoth
+    if (['docx', 'doc'].includes(ext)) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    }
+
+    // Fallback: try to read as text
+    return await file.text();
+  } catch (err) {
+    console.error('File extraction error:', err);
+    alert(`Could not extract text from "${file.name}". Supported formats: PDF, DOCX, TXT, CSV, MD.`);
     return '';
   }
 }
@@ -946,10 +979,20 @@ function AppInner() {
       const userMessage = `Topic: ${topic}\n${context ? `\nAdditional context/content:\n${context}` : ''}`;
       const response = await callAI(systemPrompt, userMessage, apiKey);
 
-      const jsonMatch = response.match(/[\[{][\s\S]*[\]}]/);
+      // Strip markdown code blocks before parsing
+      const cleaned = response.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
+      const jsonMatch = cleaned.match(/[\[{][\s\S]*[\]}]/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setResult(parsed);
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          setResult(parsed);
+        } catch (parseErr) {
+          console.error('JSON parse error:', parseErr, 'Raw match:', jsonMatch[0]);
+          throw new Error('Failed to parse AI response. Please try again.');
+        }
+      } else {
+        console.error('No JSON found in AI response:', response);
+        throw new Error('AI response did not contain valid JSON. Please try again.');
       }
     } catch (err) {
       console.error('Generation error:', err);
