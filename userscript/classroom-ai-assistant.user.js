@@ -319,6 +319,7 @@
     .cai-divider { height: 1px; background: #e0e0e0; }
 
     .cai-auth-screen {
+      flex: 1; overflow-y: auto;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 16px; padding: 40px 24px; text-align: center;
@@ -917,21 +918,34 @@ Grade this submission.`;
     const sidebar = document.getElementById('cai-sidebar');
     if (!sidebar) return;
 
-    const notConfigured = GOOGLE_CLIENT_ID === 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com'
-      || ANTHROPIC_API_KEY === 'YOUR_ANTHROPIC_KEY_HERE';
+    try {
+      const notConfigured = GOOGLE_CLIENT_ID === 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com'
+        || ANTHROPIC_API_KEY === 'YOUR_ANTHROPIC_KEY_HERE';
 
-    sidebar.innerHTML = `
-      <div class="cai-header">
-        <h1>AI Assistant</h1>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${isTokenValid() ? '<button class="cai-close" onclick="window.caiSignOut()" title="Sign out" style="font-size:13px">Sign out</button>' : ''}
-          <button class="cai-close" onclick="window.caiClose()" title="Close sidebar">&times;</button>
+      sidebar.innerHTML = `
+        <div class="cai-header">
+          <h1>AI Assistant</h1>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${isTokenValid() ? '<button class="cai-close" onclick="window.caiSignOut()" title="Sign out" style="font-size:13px">Sign out</button>' : ''}
+            <button class="cai-close" onclick="window.caiClose()" title="Close sidebar">&times;</button>
+          </div>
         </div>
-      </div>
 
-      ${notConfigured ? renderSetupScreen() : !isTokenValid() ? renderAuthScreen() : renderMain()}
-      ${renderToasts()}
-    `;
+        ${notConfigured ? renderSetupScreen() : !isTokenValid() ? renderAuthScreen() : renderMain()}
+        ${renderToasts()}
+      `;
+    } catch (err) {
+      console.error('CAI: render error', err);
+      sidebar.innerHTML = `
+        <div style="background:#534AB7;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+          <h1 style="font-size:15px;font-weight:500;margin:0">AI Assistant</h1>
+          <button onclick="window.caiClose()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:20px">&times;</button>
+        </div>
+        <div style="padding:20px;font-family:monospace;font-size:12px;color:#791F1F;background:#FCEBEB;margin:16px;border-radius:8px;overflow-wrap:break-word">
+          <strong>Render error:</strong><br>${esc(err.message || String(err))}
+        </div>
+      `;
+    }
   }
 
   function renderToasts() {
@@ -1505,6 +1519,8 @@ Grade this submission.`;
 
     const sidebar = document.createElement('div');
     sidebar.id = 'cai-sidebar';
+    // Inline fallback styles in case GM_addStyle fails to load
+    sidebar.style.cssText = 'position:fixed;right:-420px;top:0;width:420px;height:100vh;background:#fff;z-index:99998;border-left:1px solid #e0e0e0;box-shadow:-4px 0 20px rgba(0,0,0,0.1);transition:right 0.25s ease;display:flex;flex-direction:column;font-family:Google Sans,Roboto,sans-serif;font-size:14px;color:#202124;overflow:hidden;';
 
     document.body.appendChild(toggle);
     document.body.appendChild(sidebar);
