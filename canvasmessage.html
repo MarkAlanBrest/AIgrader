@@ -12,9 +12,21 @@
   .top-bar { height: 5px; background: #E62429; }
   .body { padding: 20px 22px; }
 
+  /* Setup screen */
+  .setup-title { font-size: 16px; font-weight: 500; color: #111; margin-bottom: 4px; }
+  .setup-sub { font-size: 13px; color: #888; margin-bottom: 18px; line-height: 1.5; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; color: #111; outline: none; }
+  .field input:focus { border-color: #E62429; }
+  .field .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .btn-connect { width: 100%; padding: 10px; background: #E62429; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 4px; }
+  .btn-connect:hover { background: #c4151a; }
+  .setup-error { background: #FCEBEB; color: #791F1F; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; }
+
+  /* Widget content */
   .greeting { font-size: 20px; font-weight: 500; color: #111; margin-bottom: 3px; }
   .subline { font-size: 13px; color: #888; margin-bottom: 20px; }
-
   .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 8px; }
   .block { margin-bottom: 18px; }
 
@@ -45,6 +57,10 @@
   .teacher-name { font-weight: 500; color: #111; min-width: 160px; }
   .teacher-course { color: #888; font-size: 12px; }
 
+  .reset-btn { margin-top: 16px; padding-top: 14px; border-top: 1px solid #eee; text-align: right; }
+  .reset-btn button { background: none; border: none; font-size: 12px; color: #bbb; cursor: pointer; }
+  .reset-btn button:hover { color: #E62429; }
+
   .loading { text-align: center; padding: 30px; color: #888; font-size: 14px; }
   .error-box { background: #FCEBEB; color: #791F1F; padding: 12px 16px; border-radius: 8px; font-size: 13px; }
 </style>
@@ -54,29 +70,65 @@
 <div class="widget">
   <div class="top-bar"></div>
   <div class="body">
-    <div class="loading" id="loading">Loading your assignments...</div>
+    <div id="setup" style="display:none">
+      <p class="setup-title">Canvas Student Widget</p>
+      <p class="setup-sub">Enter your Canvas details once and the widget will remember them for this browser.</p>
+      <div class="field">
+        <label>Canvas URL</label>
+        <input type="text" id="inp-url" placeholder="https://yourschool.instructure.com" />
+        <p class="hint">Your school's Canvas address</p>
+      </div>
+      <div class="field">
+        <label>API Token</label>
+        <input type="password" id="inp-token" placeholder="Paste your Canvas API token here" />
+        <p class="hint">Account &rarr; Settings &rarr; New Access Token</p>
+      </div>
+      <button class="btn-connect" id="btn-connect">Connect to Canvas</button>
+      <div id="setup-error" style="display:none" class="setup-error"></div>
+    </div>
+
+    <div id="loading" class="loading" style="display:none">Loading your assignments...</div>
     <div id="content" style="display:none"></div>
   </div>
 </div>
 
 <script>
-const API = 'https://a-igrader-ten.vercel.app/api/canvas';
+const PROXY = 'https://a-igrader-ten.vercel.app/api/canvas';
 
 function fmt(d) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function shortCourse(name) {
-  return name.replace(/^AAA-Master NCST\s*/i, '').replace(/^Master\s*/i, '').trim();
+  return name
+    .replace(/^AAA-Master NCST\s*/i, '')
+    .replace(/^Master\s*/i, '')
+    .replace(/^[A-Z0-9]+:[A-Z0-9]+:NCST\s*/i, '')
+    .trim();
 }
 
-async function run() {
-  const loading = document.getElementById('loading');
-  const content = document.getElementById('content');
+function showSetup(errorMsg) {
+  document.getElementById('setup').style.display = 'block';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'none';
+  if (errorMsg) {
+    const el = document.getElementById('setup-error');
+    el.textContent = errorMsg;
+    el.style.display = 'block';
+  }
+}
+
+async function loadData(token, baseUrl) {
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('content').style.display = 'none';
 
   try {
-    const res  = await fetch(API);
-    if (!res.ok) throw new Error('API returned ' + res.status);
+    const res = await fetch(PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, baseUrl })
+    });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
 
@@ -86,83 +138,88 @@ async function run() {
 
     let missingHTML = '';
     if (!data.missing.length) {
-      missingHTML = `<div class="item item-good">
-        <span class="icon">&#10003;</span>
-        <div><p class="item-title">Nothing missing</p><p class="item-meta">Great work staying on top of things!</p></div>
-      </div>`;
+      missingHTML = `<div class="item item-good"><span class="icon">&#10003;</span><div><p class="item-title">Nothing missing</p><p class="item-meta">Great work staying on top of things!</p></div></div>`;
     } else {
       data.missing.forEach(a => {
-        missingHTML += `<div class="item item-missing">
-          <span class="icon">&#9888;</span>
-          <div>
-            <p class="item-title">${a.name}</p>
-            <p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; was due ${fmt(a.due_at)}</p>
-          </div>
-        </div>`;
+        missingHTML += `<div class="item item-missing"><span class="icon">&#9888;</span><div><p class="item-title">${a.name}</p><p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; was due ${fmt(a.due_at)}</p></div></div>`;
       });
     }
 
     let upcomingHTML = '';
     if (!data.upcoming.length) {
-      upcomingHTML = `<div class="item item-good">
-        <span class="icon">&#10003;</span>
-        <div><p class="item-title">Nothing due in the next 14 days</p><p class="item-meta">Enjoy the break!</p></div>
-      </div>`;
+      upcomingHTML = `<div class="item item-good"><span class="icon">&#10003;</span><div><p class="item-title">Nothing due in the next 14 days</p><p class="item-meta">Enjoy the break!</p></div></div>`;
     } else {
       data.upcoming.forEach(a => {
-        upcomingHTML += `<div class="item item-upcoming">
-          <span class="icon">&#8594;</span>
-          <div>
-            <p class="item-title">${a.name}</p>
-            <p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; due ${fmt(a.due_at)}</p>
-          </div>
-        </div>`;
+        upcomingHTML += `<div class="item item-upcoming"><span class="icon">&#8594;</span><div><p class="item-title">${a.name}</p><p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; due ${fmt(a.due_at)}</p></div></div>`;
       });
     }
 
-    const uniqueTeachers = [];
-    const seen = new Set();
-    data.teachers.forEach(t => {
-      if (!seen.has(t.name)) { seen.add(t.name); uniqueTeachers.push(t); }
-    });
-
-    const teachersHTML = uniqueTeachers.map(t => `
+    const teachersHTML = data.teachers.map(t => `
       <div class="teacher-row">
         <span class="teacher-name">${t.name}</span>
         <span class="teacher-course">${shortCourse(t.course)}</span>
       </div>`).join('');
 
-    content.innerHTML = `
+    document.getElementById('content').innerHTML = `
       <p class="greeting">Hello, ${firstName}!</p>
       <p class="subline">Your assignments &mdash; ${start} through ${end}</p>
-
       <div class="block">
         <p class="section-label">Assignments you missed</p>
         ${missingHTML}
       </div>
-
       <div class="block">
         <p class="section-label">Coming up soon</p>
         ${upcomingHTML}
       </div>
-
       ${data.missing.length ? `<p class="note">If you have questions about a missing assignment, reach out to your teacher as soon as possible &mdash; most are happy to work with you.</p>` : ''}
-
       <div class="teachers-block">
         <p class="section-label">Your teachers</p>
         ${teachersHTML}
       </div>
+      <div class="reset-btn"><button onclick="resetWidget()">&#9881; Change account</button></div>
     `;
 
-    loading.style.display = 'none';
-    content.style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
 
   } catch (err) {
-    loading.innerHTML = `<div class="error-box">Could not load data: ${err.message}</div>`;
+    localStorage.removeItem('canvas_token');
+    localStorage.removeItem('canvas_url');
+    showSetup('Could not connect: ' + err.message + '. Please check your token and URL.');
   }
 }
 
-run();
+function resetWidget() {
+  localStorage.removeItem('canvas_token');
+  localStorage.removeItem('canvas_url');
+  document.getElementById('setup-error').style.display = 'none';
+  document.getElementById('inp-token').value = '';
+  document.getElementById('inp-url').value = '';
+  showSetup();
+}
+
+document.getElementById('btn-connect').addEventListener('click', async () => {
+  const token   = document.getElementById('inp-token').value.trim();
+  const baseUrl = document.getElementById('inp-url').value.trim();
+  if (!token || !baseUrl) {
+    document.getElementById('setup-error').textContent = 'Please enter both a Canvas URL and an API token.';
+    document.getElementById('setup-error').style.display = 'block';
+    return;
+  }
+  localStorage.setItem('canvas_token', token);
+  localStorage.setItem('canvas_url', baseUrl);
+  await loadData(token, baseUrl);
+});
+
+(function init() {
+  const token   = localStorage.getItem('canvas_token');
+  const baseUrl = localStorage.getItem('canvas_url');
+  if (token && baseUrl) {
+    loadData(token, baseUrl);
+  } else {
+    showSetup();
+  }
+})();
 </script>
 </body>
 </html>
