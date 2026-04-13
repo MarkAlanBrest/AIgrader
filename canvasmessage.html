@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Student Widget</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: transparent; padding: 12px; }
+
+  .widget { max-width: 520px; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden; }
+  .top-bar { height: 5px; background: #E62429; }
+  .body { padding: 20px 22px; }
+
+  .greeting { font-size: 20px; font-weight: 500; color: #111; margin-bottom: 3px; }
+  .subline { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 8px; }
+  .block { margin-bottom: 18px; }
+
+  .item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+  .item:last-child { margin-bottom: 0; }
+  .item-missing  { background: #FCEBEB; }
+  .item-upcoming { background: #FAEEDA; }
+  .item-good     { background: #EAF3DE; }
+
+  .item-title { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .item-missing  .item-title { color: #791F1F; }
+  .item-upcoming .item-title { color: #633806; }
+  .item-good     .item-title { color: #27500A; }
+
+  .item-meta { font-size: 12px; }
+  .item-missing  .item-meta { color: #A32D2D; }
+  .item-upcoming .item-meta { color: #854F0B; }
+  .item-good     .item-meta { color: #3B6D11; }
+
+  .icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+  .note { font-size: 13px; color: #666; line-height: 1.6; border-top: 1px solid #eee; padding-top: 14px; margin-top: 4px; }
+
+  .teachers-block { margin-top: 14px; padding-top: 14px; border-top: 1px solid #eee; }
+  .teachers-block .section-label { margin-bottom: 10px; }
+  .teacher-row { font-size: 13px; color: #444; padding: 4px 0; border-bottom: 1px solid #f5f5f5; display: flex; gap: 8px; }
+  .teacher-row:last-child { border-bottom: none; }
+  .teacher-name { font-weight: 500; color: #111; min-width: 160px; }
+  .teacher-course { color: #888; font-size: 12px; }
+
+  .loading { text-align: center; padding: 30px; color: #888; font-size: 14px; }
+  .error-box { background: #FCEBEB; color: #791F1F; padding: 12px 16px; border-radius: 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="top-bar"></div>
+  <div class="body">
+    <div class="loading" id="loading">Loading your assignments...</div>
+    <div id="content" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://a-igrader-ten.vercel.app/api/canvas';
+
+function fmt(d) {
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function shortCourse(name) {
+  return name.replace(/^AAA-Master NCST\s*/i, '').replace(/^Master\s*/i, '').trim();
+}
+
+async function run() {
+  const loading = document.getElementById('loading');
+  const content = document.getElementById('content');
+
+  try {
+    const res  = await fetch(API);
+    if (!res.ok) throw new Error('API returned ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const firstName = data.studentName.split(' ')[0];
+    const start     = fmt(data.dateRange.start);
+    const end       = fmt(data.dateRange.end);
+
+    let missingHTML = '';
+    if (!data.missing.length) {
+      missingHTML = `<div class="item item-good">
+        <span class="icon">&#10003;</span>
+        <div><p class="item-title">Nothing missing</p><p class="item-meta">Great work staying on top of things!</p></div>
+      </div>`;
+    } else {
+      data.missing.forEach(a => {
+        missingHTML += `<div class="item item-missing">
+          <span class="icon">&#9888;</span>
+          <div>
+            <p class="item-title">${a.name}</p>
+            <p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; was due ${fmt(a.due_at)}</p>
+          </div>
+        </div>`;
+      });
+    }
+
+    let upcomingHTML = '';
+    if (!data.upcoming.length) {
+      upcomingHTML = `<div class="item item-good">
+        <span class="icon">&#10003;</span>
+        <div><p class="item-title">Nothing due in the next 14 days</p><p class="item-meta">Enjoy the break!</p></div>
+      </div>`;
+    } else {
+      data.upcoming.forEach(a => {
+        upcomingHTML += `<div class="item item-upcoming">
+          <span class="icon">&#8594;</span>
+          <div>
+            <p class="item-title">${a.name}</p>
+            <p class="item-meta">${shortCourse(a.courseName)} &nbsp;&middot;&nbsp; due ${fmt(a.due_at)}</p>
+          </div>
+        </div>`;
+      });
+    }
+
+    const uniqueTeachers = [];
+    const seen = new Set();
+    data.teachers.forEach(t => {
+      if (!seen.has(t.name)) { seen.add(t.name); uniqueTeachers.push(t); }
+    });
+
+    const teachersHTML = uniqueTeachers.map(t => `
+      <div class="teacher-row">
+        <span class="teacher-name">${t.name}</span>
+        <span class="teacher-course">${shortCourse(t.course)}</span>
+      </div>`).join('');
+
+    content.innerHTML = `
+      <p class="greeting">Hello, ${firstName}!</p>
+      <p class="subline">Your assignments &mdash; ${start} through ${end}</p>
+
+      <div class="block">
+        <p class="section-label">Assignments you missed</p>
+        ${missingHTML}
+      </div>
+
+      <div class="block">
+        <p class="section-label">Coming up soon</p>
+        ${upcomingHTML}
+      </div>
+
+      ${data.missing.length ? `<p class="note">If you have questions about a missing assignment, reach out to your teacher as soon as possible &mdash; most are happy to work with you.</p>` : ''}
+
+      <div class="teachers-block">
+        <p class="section-label">Your teachers</p>
+        ${teachersHTML}
+      </div>
+    `;
+
+    loading.style.display = 'none';
+    content.style.display = 'block';
+
+  } catch (err) {
+    loading.innerHTML = `<div class="error-box">Could not load data: ${err.message}</div>`;
+  }
+}
+
+run();
+</script>
+</body>
+</html>
