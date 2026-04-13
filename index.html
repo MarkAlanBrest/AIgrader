@@ -1,157 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Employer Expectations Submission</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Student Widget</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: transparent; padding: 12px; }
+
+  .widget { max-width: 520px; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden; }
+  .top-bar { height: 5px; background: #E62429; }
+  .body { padding: 20px 22px; }
+
+  .course-title { font-size: 20px; font-weight: 500; color: #111; margin-bottom: 3px; }
+  .subline { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 8px; }
+  .block { margin-bottom: 18px; }
+
+  .item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+  .item:last-child { margin-bottom: 0; }
+  .item-missing  { background: #FCEBEB; }
+  .item-upcoming { background: #FAEEDA; }
+  .item-good     { background: #EAF3DE; }
+
+  .item-title { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .item-missing  .item-title { color: #791F1F; }
+  .item-upcoming .item-title { color: #633806; }
+  .item-good     .item-title { color: #27500A; }
+
+  .item-meta { font-size: 12px; }
+  .item-missing  .item-meta { color: #A32D2D; }
+  .item-upcoming .item-meta { color: #854F0B; }
+  .item-good     .item-meta { color: #3B6D11; }
+
+  .icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+  .note { font-size: 13px; color: #666; line-height: 1.6; border-top: 1px solid #eee; padding-top: 14px; margin-top: 4px; }
+
+  .loading { text-align: center; padding: 30px; color: #888; font-size: 14px; }
+  .error-box { background: #FCEBEB; color: #791F1F; padding: 12px 16px; border-radius: 8px; font-size: 13px; }
+</style>
 </head>
+<body>
 
-<body style="font-family:Arial; background:#f5f7fa; padding:20px;">
-
-<div style="max-width:900px;margin:auto;background:white;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-
-<h2>Employer Expectations Assignment</h2>
-
-<!-- ATTENDANCE -->
-<h3>Attendance</h3>
-<label>Attendance Example 1:</label><br>
-<textarea id="a1" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>Attendance Example 2:</label><br>
-<textarea id="a2" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>Attendance Example 3:</label><br>
-<textarea id="a3" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>My Attendance Statement:</label><br>
-<textarea id="attendanceStatement" style="width:100%;height:80px;"></textarea><br><br>
-
-<!-- PUNCTUALITY -->
-<h3>Punctuality</h3>
-<textarea id="p1" placeholder="Example 1" style="width:100%;height:60px;"></textarea><br><br>
-<textarea id="p2" placeholder="Example 2" style="width:100%;height:60px;"></textarea><br><br>
-<textarea id="p3" placeholder="Example 3" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>My Punctuality Statement:</label><br>
-<textarea id="punctualityStatement" style="width:100%;height:80px;"></textarea><br><br>
-
-<!-- RELIABILITY CHECKLIST -->
-<h3>Reliability (check all that apply)</h3>
-
-<div id="reliability">
-<label><input type="checkbox"> Honest day’s work</label><br>
-<label><input type="checkbox"> Learn new things</label><br>
-<label><input type="checkbox"> Get along with others</label><br>
-<label><input type="checkbox"> Leave problems at home</label><br>
-<label><input type="checkbox"> Follow directions</label><br>
-<label><input type="checkbox"> Keep workplace clean</label><br>
-<label><input type="checkbox"> Ask for help appropriately</label><br>
-<label><input type="checkbox"> Admit mistakes</label><br>
-<label><input type="checkbox"> Work until job is done</label><br>
-</div>
-
-<br>
-
-<label>Reliability Example 1:</label>
-<textarea id="r1" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>Reliability Example 2:</label>
-<textarea id="r2" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>Reliability Example 3:</label>
-<textarea id="r3" style="width:100%;height:60px;"></textarea><br><br>
-
-<label>My Reliability Statement:</label>
-<textarea id="rStatement" style="width:100%;height:80px;"></textarea><br><br>
-
-<!-- SKILLS -->
-<h3>Job Skills</h3>
-
-<label>Data:</label>
-<textarea id="data" style="width:100%;height:80px;"></textarea><br><br>
-
-<label>People:</label>
-<textarea id="people" style="width:100%;height:80px;"></textarea><br><br>
-
-<label>Things:</label>
-<textarea id="things" style="width:100%;height:80px;"></textarea><br><br>
-
-<label>Ideas:</label>
-<textarea id="ideas" style="width:100%;height:80px;"></textarea><br><br>
-
-<label>Final Interview Statement:</label>
-<textarea id="final" style="width:100%;height:100px;"></textarea><br><br>
-
-<!-- BUTTON -->
-<button onclick="generateFile()" style="padding:12px 25px;font-size:16px;background:#1e3a8a;color:white;border:none;border-radius:8px;">
-Generate Submission
-</button>
-
-<p id="status" style="color:green;margin-top:10px;"></p>
-
+<div class="widget">
+  <div class="top-bar"></div>
+  <div class="body">
+    <div class="loading" id="loading">Loading your assignments...</div>
+    <div id="content" style="display:none"></div>
+  </div>
 </div>
 
 <script>
-function generateFile() {
+const PROXY = 'https://a-igrader-ten.vercel.app/api/canvas';
 
-  const checks = Array.from(document.querySelectorAll('#reliability input:checked'))
-    .map(c => c.parentElement.innerText.trim())
-    .join(", ");
-
-  const content = `
-EMPLOYER EXPECTATIONS ASSIGNMENT
-
---- ATTENDANCE ---
-Example 1: ${a1.value}
-Example 2: ${a2.value}
-Example 3: ${a3.value}
-
-Statement:
-${attendanceStatement.value}
-
---- PUNCTUALITY ---
-Example 1: ${p1.value}
-Example 2: ${p2.value}
-Example 3: ${p3.value}
-
-Statement:
-${punctualityStatement.value}
-
---- RELIABILITY ---
-Selected Traits: ${checks}
-
-Example 1: ${r1.value}
-Example 2: ${r2.value}
-Example 3: ${r3.value}
-
-Statement:
-${rStatement.value}
-
---- SKILLS ---
-Data:
-${data.value}
-
-People:
-${people.value}
-
-Things:
-${things.value}
-
-Ideas:
-${ideas.value}
-
---- FINAL INTERVIEW STATEMENT ---
-${final.value}
-`;
-
-  const blob = new Blob([content], { type: "text/plain" });
-  const link = document.createElement("a");
-
-  link.href = URL.createObjectURL(blob);
-  link.download = "Employer_Expectations.txt";
-  link.click();
-
-  document.getElementById("status").innerText = "Download complete ✔️ Upload to Canvas.";
+function fmt(d) {
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-</script>
 
+function getCourseId() {
+  // 1. Check if courseId was passed manually in the iframe src URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('courseId')) return params.get('courseId');
+
+  // 2. Try to read it from the parent page URL (e.g. /courses/12345)
+  try {
+    const parentUrl = document.referrer || (window.parent !== window ? window.parent.location.href : '');
+    const match = parentUrl.match(/\/courses\/(\d+)/);
+    if (match) return match[1];
+  } catch (e) {}
+
+  // 3. Try Canvas ENV object injected into the parent page
+  try {
+    const env = window.parent.ENV;
+    if (env && env.COURSE_ID) return String(env.COURSE_ID);
+  } catch (e) {}
+
+  return null;
+}
+
+async function run() {
+  const loading = document.getElementById('loading');
+  const content = document.getElementById('content');
+
+  const courseId = getCourseId();
+
+  if (!courseId) {
+    loading.innerHTML = `<div class="error-box">Could not detect the course. Try adding <strong>?courseId=YOUR_COURSE_ID</strong> to the iframe URL.</div>`;
+    return;
+  }
+
+  try {
+    const res  = await fetch(PROXY + '?courseId=' + courseId);
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const start = fmt(data.dateRange.start);
+    const end   = fmt(data.dateRange.end);
+
+    let missingHTML = '';
+    if (!data.missing.length) {
+      missingHTML = `<div class="item item-good"><span class="icon">&#10003;</span><div>
+        <p class="item-title">No past-due assignments</p>
+        <p class="item-meta">Great work staying on top of things!</p>
+      </div></div>`;
+    } else {
+      data.missing.forEach(a => {
+        missingHTML += `<div class="item item-missing"><span class="icon">&#9888;</span><div>
+          <p class="item-title">${a.name}</p>
+          <p class="item-meta">Was due ${fmt(a.due_at)}</p>
+        </div></div>`;
+      });
+    }
+
+    let upcomingHTML = '';
+    if (!data.upcoming.length) {
+      upcomingHTML = `<div class="item item-good"><span class="icon">&#10003;</span><div>
+        <p class="item-title">Nothing due in the next 14 days</p>
+        <p class="item-meta">Enjoy the break!</p>
+      </div></div>`;
+    } else {
+      data.upcoming.forEach(a => {
+        upcomingHTML += `<div class="item item-upcoming"><span class="icon">&#8594;</span><div>
+          <p class="item-title">${a.name}</p>
+          <p class="item-meta">Due ${fmt(a.due_at)}</p>
+        </div></div>`;
+      });
+    }
+
+    content.innerHTML = `
+      <p class="course-title">${data.courseName}</p>
+      <p class="subline">${start} through ${end}</p>
+
+      <div class="block">
+        <p class="section-label">Past due</p>
+        ${missingHTML}
+      </div>
+
+      <div class="block">
+        <p class="section-label">Coming up</p>
+        ${upcomingHTML}
+      </div>
+
+      ${data.missing.length ? `<p class="note">If you have questions about a past-due assignment, reach out to your teacher as soon as possible.</p>` : ''}
+    `;
+
+    loading.style.display = 'none';
+    content.style.display = 'block';
+
+  } catch (err) {
+    loading.innerHTML = `<div class="error-box">Could not load data: ${err.message}</div>`;
+  }
+}
+
+run();
+</script>
 </body>
 </html>
