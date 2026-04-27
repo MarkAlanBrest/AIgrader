@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Tools Installer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-hover: #253349;
+      --border: #334155;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #22c55e;
+      --green-hover: #16a34a;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 36px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Steps */
+    .step {
+      margin-bottom: 36px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .step-number.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .step-number.done {
+      background: var(--green);
+      color: white;
+    }
+
+    .step-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .step-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-left: 50px;
+      margin-bottom: 16px;
+    }
+
+    /* Tampermonkey card */
+    .tm-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-left: 50px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: background 0.2s;
+    }
+
+    .tm-card:hover { background: var(--card-hover); }
+
+    .tm-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 28px;
+    }
+
+    .tm-info { flex: 1; }
+    .tm-info h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+    .tm-info p { color: var(--text-muted); font-size: 0.85rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    .btn-green {
+      background: var(--green);
+      color: white;
+    }
+    .btn-green:hover { background: var(--green-hover); transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--card); color: var(--text); }
+
+    /* Script cards */
+    .scripts-grid {
+      margin-left: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .script-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+
+    .script-card:hover { background: var(--card-hover); }
+
+    .script-card.installed {
+      border-color: var(--green);
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .script-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+
+    .script-info { flex: 1; min-width: 0; }
+    .script-info h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .script-info p {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .script-version {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .script-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+    }
+
+    .btn-installed {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      cursor: default;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      font-weight: 600;
+      border: none;
+    }
+
+    /* Install all bar */
+    .install-all-bar {
+      margin-left: 50px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-text {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .progress-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* Step 3 - Done */
+    .done-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-left: 50px;
+      text-align: center;
+    }
+
+    .done-card.all-done {
+      border-color: var(--green);
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .done-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .done-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Badge colors per script */
+    .bg-blue    { background: rgba(59, 130, 246, 0.15); }
+    .bg-purple  { background: rgba(139, 92, 246, 0.15); }
+    .bg-orange  { background: rgba(245, 158, 11, 0.15); }
+    .bg-green   { background: rgba(34, 197, 94, 0.15); }
+    .bg-red     { background: rgba(239, 68, 68, 0.15); }
+    .bg-cyan    { background: rgba(6, 182, 212, 0.15); }
+    .bg-pink    { background: rgba(236, 72, 153, 0.15); }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 32px 0 32px 50px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container { padding: 24px 16px 40px; }
+      .header h1 { font-size: 1.5rem; }
+      .tm-card { flex-direction: column; text-align: center; margin-left: 0; }
+      .scripts-grid { margin-left: 0; }
+      .script-card { flex-wrap: wrap; }
+      .script-actions { width: 100%; justify-content: flex-end; }
+      .install-all-bar { margin-left: 0; flex-wrap: wrap; }
+      .step-desc { margin-left: 0; }
+      .divider { margin-left: 0; }
+      .done-card { margin-left: 0; }
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Animated loading dots */
+    .installing-text::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%  { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    .browser-links {
+      margin-left: 50px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .browser-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .browser-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+    }
+
+    .browser-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .note-box {
+      margin-left: 50px;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--orange);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">&#x1F9E9;</div>
+      <h1>Canvas Tools Installer</h1>
+      <p>Install Tampermonkey and all Canvas LMS userscripts in just a few clicks</p>
+    </div>
+
+    <!-- Step 1: Tampermonkey -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number active" id="step1-num">1</div>
+        <div class="step-title">Install Tampermonkey Extension</div>
+      </div>
+      <p class="step-desc">Tampermonkey is a browser extension that manages userscripts. Install it for your browser first.</p>
+      <div class="browser-links">
+        <a class="browser-btn" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#4285F4" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="#4285F4"/><path d="M12 2a10 10 0 0 1 8.66 5H12" stroke="#EA4335" stroke-width="2"/><path d="M3.34 7l5 8.66" stroke="#FBBC05" stroke-width="2"/><path d="M20.66 7l-5 8.66" stroke="#34A853" stroke-width="2"/></svg>
+          Chrome
+        </a>
+        <a class="browser-btn" href="https://www.tampermonkey.net/?browser=firefox" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF6611"><circle cx="12" cy="12" r="10" fill="#FF6611" opacity="0.2"/><circle cx="12" cy="12" r="6" fill="#FF6611"/></svg>
+          Firefox
+        </a>
+        <a class="browser-btn" href="https://www.tampermonkey.net/?browser=edge" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0078D4"><circle cx="12" cy="12" r="10" fill="#0078D4" opacity="0.2"/><circle cx="12" cy="12" r="6" fill="#0078D4"/></svg>
+          Edge
+        </a>
+        <a class="browser-btn" href="https://www.tampermonkey.net/?browser=safari" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#006CFF"><circle cx="12" cy="12" r="10" fill="#006CFF" opacity="0.2"/><circle cx="12" cy="12" r="6" fill="#006CFF"/></svg>
+          Safari
+        </a>
+      </div>
+      <div class="note-box">
+        After installing, refresh this page so the script install buttons work correctly.
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Step 2: Install Scripts -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number active" id="step2-num">2</div>
+        <div class="step-title">Install Canvas Userscripts</div>
+      </div>
+      <p class="step-desc">Click each button to install, or use "Install All" to install everything at once. The Canvas Tool Dashboard should be installed first as other tools register into it.</p>
+
+      <div class="scripts-grid" id="scripts-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="install-all-bar">
+        <button class="btn btn-green" id="install-all-btn" onclick="installAll()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a.5.5 0 0 1 .5.5v9.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 11.293V1.5A.5.5 0 0 1 8 1z"/><path d="M2 13.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
+          Install All Scripts
+        </button>
+        <span class="progress-text" id="progress-text">0 / 7 installed</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Step 3: Done -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number active" id="step3-num">3</div>
+        <div class="step-title">You're All Set!</div>
+      </div>
+      <div class="done-card" id="done-card">
+        <h3 id="done-title">Waiting for installations...</h3>
+        <p id="done-desc">Install all scripts above, then navigate to your Canvas LMS site to start using the tools.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toast-text"></span>
+  </div>
+
+  <script>
+    // ─── Script definitions ──────────────────────────────────────
+    const SCRIPTS = [
+      {
+        id: 'dashboard',
+        name: 'Canvas Tool Dashboard',
+        desc: 'Collapsible bottom toolbar with compact clean UI, AI popups, and per-script Backup/Restore',
+        version: '4.3.0',
+        file: 'scripts/Canvas-Tool-Dashboard-4.3.0.user.js',
+        icon: '\u{1F3AF}',
+        bg: 'bg-blue',
+        order: 0
+      },
+      {
+        id: 'aigrader',
+        name: 'AIgrader \u2014 Claude Edition',
+        desc: 'Grade Canvas submissions using Claude AI directly in SpeedGrader',
+        version: '5.0',
+        file: 'scripts/AIgrader-Claude-Edition-5.0.user.js',
+        icon: '\u{1F4DD}',
+        bg: 'bg-purple',
+        order: 1
+      },
+      {
+        id: 'module-builder',
+        name: 'Canvas AI Module Builder',
+        desc: 'AI-powered Canvas LMS module builder \u2014 builds and inserts modules via Canvas API',
+        version: '4.0.0',
+        file: 'scripts/Canvas-AI-Module-Builder-4.0.0.user.js',
+        icon: '\u{1F4E6}',
+        bg: 'bg-orange',
+        order: 2
+      },
+      {
+        id: 'content-builder',
+        name: 'Canvas Content Builder',
+        desc: 'AI-powered Canvas page and assignment HTML generator',
+        version: '1.0',
+        file: 'scripts/Canvas-Content-Builder-1.0.user.js',
+        icon: '\u{1F58C}\uFE0F',
+        bg: 'bg-cyan',
+        order: 3
+      },
+      {
+        id: 'qti-generator',
+        name: 'Canvas QTI Test Generator',
+        desc: 'AI-powered QTI quiz generator for Canvas LMS',
+        version: '1.1',
+        file: 'scripts/Canvas-QTI-Test-Generator-1.1.user.js',
+        icon: '\u{1F9EA}',
+        bg: 'bg-green',
+        order: 4
+      },
+      {
+        id: 'email-system',
+        name: 'Canvas Email System',
+        desc: 'Pull student data, generate personalized emails, and post announcements',
+        version: '1.0.0',
+        file: 'scripts/Canvas-Email-System-1.0.0.user.js',
+        icon: '\u{1F4E7}',
+        bg: 'bg-red',
+        order: 5
+      },
+      {
+        id: 'teacher-eval',
+        name: 'Canvas Teacher Evaluation Tool',
+        desc: 'Data-driven teacher/course evaluation dashboard for Canvas LMS admins',
+        version: '1.1.0',
+        file: 'scripts/Canvas-Teacher-Evaluation-Tool-1.1.0.user.js',
+        icon: '\u{1F4CA}',
+        bg: 'bg-pink',
+        order: 6
+      }
+    ];
+
+    // ─── State ───────────────────────────────────────────────────
+    const installed = new Set();
+
+    // ─── Render scripts ──────────────────────────────────────────
+    function renderScripts() {
+      const grid = document.getElementById('scripts-grid');
+      grid.innerHTML = SCRIPTS.map(s => `
+        <div class="script-card" id="card-${s.id}">
+          <div class="script-icon ${s.bg}">${s.icon}</div>
+          <div class="script-info">
+            <h4>${s.name}</h4>
+            <p>${s.desc}</p>
+          </div>
+          <span class="script-version">v${s.version}</span>
+          <div class="script-actions" id="actions-${s.id}">
+            <button class="btn btn-primary btn-sm" onclick="installScript('${s.id}')">Install</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── Install a single script ─────────────────────────────────
+    function installScript(id) {
+      const script = SCRIPTS.find(s => s.id === id);
+      if (!script || installed.has(id)) return;
+
+      // Navigate to the .user.js file — Tampermonkey intercepts this
+      const url = new URL(script.file, window.location.href).href;
+      window.open(url, '_blank');
+
+      // Mark as installed (user will confirm in TM dialog)
+      markInstalled(id);
+      showToast(`Opening ${script.name} installer...`);
+    }
+
+    // ─── Mark a script as installed ──────────────────────────────
+    function markInstalled(id) {
+      installed.add(id);
+      const card = document.getElementById(`card-${id}`);
+      const actions = document.getElementById(`actions-${id}`);
+      if (card) card.classList.add('installed');
+      if (actions) {
+        actions.innerHTML = '<span class="btn-installed">&#10003; Opened</span>';
+      }
+      updateProgress();
+    }
+
+    // ─── Install all scripts sequentially ────────────────────────
+    async function installAll() {
+      const btn = document.getElementById('install-all-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="installing-text">Installing</span>';
+
+      for (const script of SCRIPTS) {
+        if (installed.has(script.id)) continue;
+        installScript(script.id);
+        // Small delay between opens so browser doesn't block popups
+        await new Promise(r => setTimeout(r, 800));
+      }
+
+      btn.innerHTML = '&#10003; All Scripts Opened';
+      btn.classList.remove('btn-green');
+      btn.classList.add('btn-outline');
+    }
+
+    // ─── Update progress bar ─────────────────────────────────────
+    function updateProgress() {
+      const count = installed.size;
+      const total = SCRIPTS.length;
+      const pct = (count / total) * 100;
+
+      document.getElementById('progress-text').textContent = `${count} / ${total} installed`;
+      document.getElementById('progress-bar').style.width = pct + '%';
+
+      if (count === total) {
+        document.getElementById('step2-num').classList.remove('active');
+        document.getElementById('step2-num').classList.add('done');
+        document.getElementById('step2-num').innerHTML = '&#10003;';
+        document.getElementById('step3-num').classList.remove('active');
+        document.getElementById('step3-num').classList.add('done');
+        document.getElementById('step3-num').innerHTML = '&#10003;';
+
+        const doneCard = document.getElementById('done-card');
+        doneCard.classList.add('all-done');
+        document.getElementById('done-title').textContent = 'All scripts installed!';
+        document.getElementById('done-desc').textContent = 'Navigate to your Canvas LMS site to start using the tools. The toolbar will appear at the bottom of Canvas pages.';
+      }
+    }
+
+    // ─── Toast ───────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ─── Init ────────────────────────────────────────────────────
+    renderScripts();
+  </script>
+</body>
+</html>
